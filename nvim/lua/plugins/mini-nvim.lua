@@ -25,7 +25,7 @@ return {
         },
         symbols = {
           encode = minimap.gen_encode_symbols.dot("3x2"),
-          scroll_line = "",
+          scroll_line = "─",
           scroll_view = "█",
         },
         window = {
@@ -45,6 +45,9 @@ return {
         local visual_hl = vim.api.nvim_get_hl(0, { name = "Visual" })
         local view_color = visual_hl.bg or visual_hl.fg or "#5c6370"
         vim.api.nvim_set_hl(0, "MiniMapSymbolView", { fg = view_color, bg = "NONE" })
+
+        -- Link the current cursor line symbol highlight to CursorLineNr
+        vim.api.nvim_set_hl(0, "MiniMapSymbolLine", { link = "CursorLineNr" })
       end
 
       set_minimap_hl()
@@ -55,22 +58,9 @@ return {
         callback = set_minimap_hl,
       })
 
-      -- Monkey-patch window height calculations for mini.map to make it dynamic height (like VSCode)
-      -- capped at 50% of the screen height.
+      -- Monkey-patch window height calculations removed (height goes back to default)
       local function adjust_minimap_opts(buf, opts)
-        if opts.relative == 'editor' and vim.api.nvim_buf_is_valid(buf) and vim.bo[buf].filetype == 'minimap' then
-          local source_buf = minimap.current.buf_data.source or vim.api.nvim_get_current_buf()
-          local source_lines = vim.api.nvim_buf_is_valid(source_buf) and vim.api.nvim_buf_line_count(source_buf) or 1
-          
-          local has_tabline = vim.o.showtabline == 2 or (vim.o.showtabline == 1 and #vim.api.nvim_list_tabpages() > 1)
-          local has_statusline = vim.o.laststatus > 0
-          local max_avail_height = vim.o.lines - vim.o.cmdheight - (has_tabline and 1 or 0) - (has_statusline and 1 or 0)
-          
-          -- Dynamic height capped at 50% of the screen height (minimap lines are 1 per 3 lines of source code)
-          local max_height = math.floor(max_avail_height * 0.5)
-          local needed_height = math.ceil(source_lines / 3)
-          opts.height = math.max(5, math.min(max_height, needed_height))
-        end
+        -- Height restriction removed to fallback to default behavior.
       end
 
       local orig_open_win = vim.api.nvim_open_win

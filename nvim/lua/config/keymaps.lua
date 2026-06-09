@@ -163,10 +163,19 @@ map("n", "<leader>i", function()
     require("telescope.builtin").find_files()
   end
 end, { desc = "Find files (Git / Workspace)" })
-map("n", "<leader>d", "<cmd>Telescope live_grep<CR>", { desc = "Global search (live grep)" })
+map("n", "<leader>s", "<cmd>Telescope live_grep<CR>", { desc = "Global search (live grep)" })
 map("n", "<leader>;", "<cmd>Telescope commands<CR>", { desc = "Command palette" })
 map("n", "<leader>n", "<cmd>Telescope buffers<CR>", { desc = "Find open buffers" })
+map("n", "<leader>?", "<cmd>Telescope keymaps<CR>", { desc = "Search keymaps" })
 map("n", "<leader>/", function() require("spectre").toggle() end, { desc = "Toggle Spectre (Search & Replace)" })
+map("n", "af", function()
+  vim.cmd("normal! v")
+  require("vim.treesitter._select").select_parent()
+end, { desc = "Init Treesitter selection" })
+
+map("x", "af", function()
+  require("vim.treesitter._select").select_parent()
+end, { desc = "Expand Treesitter selection" })
 
 
 -- ==========================================
@@ -412,6 +421,27 @@ map("n", "<leader>gl", function()
   end
   lazygit:toggle()
 end, { desc = "Toggle LazyGit" })
+
+local lazydocker = nil
+map("n", "<leader>dl", function()
+  if not lazydocker then
+    local Terminal = require("toggleterm.terminal").Terminal
+    lazydocker = Terminal:new({
+      cmd = "lazydocker",
+      dir = "git_dir",
+      direction = "float",
+      float_opts = {
+        border = "double",
+      },
+      on_open = function(term)
+        vim.cmd("startinsert!")
+        -- Prevent standard exit terminal mapping from overriding Esc inside lazydocker
+        vim.api.nvim_buf_set_keymap(term.bufnr, "t", "<Esc>", "<Esc>", { noremap = true, silent = true })
+      end,
+    })
+  end
+  lazydocker:toggle()
+end, { desc = "Toggle LazyDocker" })
 
 map("n", "<leader>gg", "<cmd>Neogit<CR>", { desc = "Open Neogit" })
 

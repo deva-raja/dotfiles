@@ -1,7 +1,6 @@
 # 🌌 Portable Dotfiles
 
 A consolidated, premium, and fully automated configuration for your CLI environment, natively supporting **macOS & Linux** (and Windows via WSL2). This repository houses configurations for **Neovim (v0.10+)**, **Ghostty Terminal**, and **Zsh** with pre-configured developer tools like `fzf`, `zoxide`, and `starship`.
-
 ### 📸 Setup Preview
 ![Setup Preview](assets/preview.webp)
 
@@ -146,6 +145,7 @@ G               ->  Jump to bottom of file and center cursor (Gzz)
 gn              ->  Search word currently under the cursor (*)
 gj              ->  Jump cursor to first non-blank character (^)
 gl              ->  Jump cursor to matching parenthesis/bracket (%)
+af              ->  Initialize (Normal) / Expand (Visual) Treesitter syntax selection
 <leader>p       ->  Insert a line below cursor and return to Normal mode
 <Esc>           ->  Clear highlighted search outputs (nohlsearch)
 <leader><Esc>   ->  Close/Quit Neovim completely (qa)
@@ -163,9 +163,10 @@ Cmd + \         ->  Toggle Neo-tree sidebar (VS Code file explorer style)
 <leader>gv      ->  Create a vertical window split
 <leader>gh      ->  Create a horizontal window split
 <leader>i       ->  Open Telescope file finder (uses Git files if inside a repo)
-<leader>d       ->  Open Telescope live grep (search text across all files)
+<leader>s       ->  Open Telescope live grep (global quick regex search across all files)
 <leader>n       ->  Open Telescope buffer list (switch between open buffers)
 <leader>;       ->  Open command palette search
+<leader>?       ->  Search and list active keymaps (Telescope)
 ```
 
 ### Integrated Terminal (ToggleTerm)
@@ -187,6 +188,7 @@ q               ->  Close/Destroy active terminal split process (in terminal Nor
 ### Git, Diff, & Version Control
 ```text
 <leader>gl      ->  Toggle floating LazyGit window (press Esc inside to close)
+<leader>dl      ->  Toggle floating LazyDocker window (press Esc inside to close)
 <leader>gg      ->  Open Neogit client
 <leader>gd      ->  Open Git CodeDiff (Inline single-window diff viewer)
 <leader>gr      ->  Open Git CodeDiff (Side-by-Side double-window diff viewer)
