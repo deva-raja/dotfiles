@@ -100,6 +100,13 @@ return {
           if not buf or not vim.api.nvim_buf_is_valid(buf) then
             return
           end
+
+          -- Skip auto-opening minimap in minimal/headless environments (e.g. SSH)
+          local is_minimal = vim.fn.exists('$SSH_CONNECTION') == 1 or vim.fn.filereadable(vim.fn.stdpath('config') .. '/.minimal') == 1
+          if is_minimal then
+            return
+          end
+
           local file = event.file
           -- Check if buffer is a normal file
           if file == "" or vim.bo[buf].buftype ~= "" then

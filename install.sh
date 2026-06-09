@@ -47,6 +47,102 @@ ask_yes_no() {
   done
 }
 
+# Helper to install Node.js standalone on Linux if not present
+install_node_linux() {
+  if command -v node &> /dev/null && command -v npm &> /dev/null; then
+    info "Node.js is already installed system-wide ($(node -v)). Skipping standalone installation."
+    return 0
+  fi
+
+  info "Installing Node.js standalone precompiled binary..."
+  local ARCH
+  ARCH="$(uname -m)"
+  local NODE_ARCH
+  case "$ARCH" in
+    x86_64) NODE_ARCH="x64" ;;
+    aarch64|arm64) NODE_ARCH="arm64" ;;
+    *)
+      warn "Unsupported architecture for Node.js precompiled binary: $ARCH. Skipping standalone install."
+      return 1
+      ;;
+  esac
+
+  local NODE_VER="v20.12.2"
+  local NODE_DIST="node-${NODE_VER}-linux-${NODE_ARCH}"
+  local TARBALL="${NODE_DIST}.tar.xz"
+  local DOWNLOAD_URL="https://nodejs.org/dist/${NODE_VER}/${TARBALL}"
+  local INSTALL_DIR="$HOME/.local/lib/nodejs"
+  local BIN_DIR="$HOME/.local/bin"
+
+  info "Downloading Node.js ${NODE_VER} for ${NODE_ARCH}..."
+  mkdir -p "$INSTALL_DIR"
+  mkdir -p "$BIN_DIR"
+  
+  if curl -fsSL "$DOWNLOAD_URL" -o "/tmp/${TARBALL}"; then
+    info "Extracting Node.js..."
+    tar -xJf "/tmp/${TARBALL}" -C "$INSTALL_DIR"
+    rm "/tmp/${TARBALL}"
+    
+    # Symlink binaries to ~/.local/bin
+    ln -sfn "$INSTALL_DIR/${NODE_DIST}/bin/node" "$BIN_DIR/node"
+    ln -sfn "$INSTALL_DIR/${NODE_DIST}/bin/npm" "$BIN_DIR/npm"
+    ln -sfn "$INSTALL_DIR/${NODE_DIST}/bin/npx" "$BIN_DIR/npx"
+    
+    success "Node.js and npm installed successfully in ~/.local/bin!"
+    return 0
+  else
+    warn "Failed to download precompiled Node.js."
+    return 1
+  fi
+}
+
+# Helper to prompt the user for Node.js installation method if missing
+install_node_choice() {
+  if command -v node &> /dev/null && command -v npm &> /dev/null; then
+    info "Node.js is already installed ($(node -v)). Skipping standalone installation."
+    return 0
+  fi
+
+  echo -e "\n[?] Node.js/NPM is required by Neovim for web language servers (JS/TS, HTML, CSS, JSON)."
+  echo "    How would you like to install Node.js?"
+  echo "    1) Standalone User-space (Fastest, zero system bloat, installs in ~/.local/lib/nodejs) [Recommended]"
+  echo "    2) System Package Manager (Global, requires sudo/apt-get, installs system-wide packages)"
+  echo "    3) Skip (Skip Node installation; some Neovim LSPs will not function until Node is installed)"
+  
+  local choice
+  while true; do
+    prompt "Enter your choice [1-3] (default 1):"
+    read -r choice
+    if [[ -z "$choice" ]]; then
+      choice=1
+    fi
+    case "$choice" in
+      1)
+        install_node_linux
+        return 0
+        ;;
+      2)
+        info "Installing Node.js via system package manager..."
+        if command -v apt-get &> /dev/null; then
+          sudo apt-get install -y nodejs npm
+        elif command -v pacman &> /dev/null; then
+          sudo pacman -Syu --needed nodejs npm
+        elif command -v dnf &> /dev/null; then
+          sudo dnf install -y nodejs npm
+        fi
+        return 0
+        ;;
+      3)
+        info "Skipping Node.js installation."
+        return 0
+        ;;
+      *)
+        info "Invalid choice. Please enter 1, 2, or 3."
+        ;;
+    esac
+  done
+}
+
 echo -e "${MAGENTA}${BOLD}"
 echo "=========================================="
 echo "      CLI & Neovim Dotfiles Installer     "
@@ -54,15 +150,35 @@ echo "=========================================="
 echo -e "${NC}"
 info "Dotfiles directory: ${DOTFILES_DIR}"
 
-# 1. Detect Operating System
+# 1. Detect Operating System & Headless Environment
 OS="$(uname -s)"
+HEADLESS=false
+if [[ "$OS" == "Linux" ]] && [[ -z "$DISPLAY" ]] && [[ -z "$WAYLAND_DISPLAY" ]]; then
+  HEADLESS=true
+fi
+
 if [[ "$OS" == "Darwin" ]]; then
   info "Detected macOS."
 elif [[ "$OS" == "Linux" ]]; then
-  info "Detected Linux."
+  info "Detected Linux (Headless: $HEADLESS)."
 else
   warn "Unsupported Operating System: $OS. Proceeding anyway..."
 fi
+
+# Ask for installation profile
+INSTALL_PROFILE="full"
+if [[ "$HEADLESS" == "true" ]]; then
+  info "Detected headless environment (remote server/SSH)."
+  if ask_yes_no "Do you want to use the Minimal Server profile (highly recommended for remote servers)?"; then
+    INSTALL_PROFILE="minimal"
+  fi
+else
+  if ! ask_yes_no "Do you want to install the Full Desktop profile (choose No for Minimal Server)?"; then
+    INSTALL_PROFILE="minimal"
+  fi
+fi
+
+info "Selected Profile: ${INSTALL_PROFILE^^}"
 
 # 2. Dependency Installer
 if ask_yes_no "Do you want to check and install missing dependencies?"; then
@@ -75,24 +191,44 @@ if ask_yes_no "Do you want to check and install missing dependencies?"; then
     fi
 
     # Install packages
-    info "Installing dependencies via Homebrew (neovim, starship, zoxide, fzf, ripgrep, fd, zsh, node, unzip)..."
-    brew install neovim starship zoxide fzf ripgrep fd zsh node unzip
+    if [[ "$INSTALL_PROFILE" == "minimal" ]]; then
+      info "Installing dependencies via Homebrew (neovim, starship, zoxide, fzf, ripgrep, fd, zsh, unzip)..."
+      brew install neovim starship zoxide fzf ripgrep fd zsh unzip
+    else
+      info "Installing dependencies via Homebrew (neovim, starship, zoxide, fzf, ripgrep, fd, zsh, node, unzip)..."
+      brew install neovim starship zoxide fzf ripgrep fd zsh node unzip
+    fi
   elif [[ "$OS" == "Linux" ]]; then
     # Try finding apt-get, pacman, or dnf
     if command -v apt-get &> /dev/null; then
       info "Installing dependencies via apt-get..."
       sudo apt-get update
-      sudo apt-get install -y neovim starship zoxide fzf ripgrep fd-find zsh curl git build-essential unzip nodejs npm python3 python3-pip python3-venv
+      if [[ "$INSTALL_PROFILE" == "minimal" ]]; then
+        sudo apt-get install -y neovim starship zoxide fzf ripgrep fd-find zsh curl git build-essential unzip
+      else
+        sudo apt-get install -y neovim starship zoxide fzf ripgrep fd-find zsh curl git build-essential unzip python3 python3-pip python3-venv
+      fi
     elif command -v pacman &> /dev/null; then
       info "Installing dependencies via pacman..."
-      sudo pacman -Syu --needed neovim starship zoxide fzf ripgrep fd zsh curl git base-devel unzip nodejs npm python python-pip
+      if [[ "$INSTALL_PROFILE" == "minimal" ]]; then
+        sudo pacman -Syu --needed neovim starship zoxide fzf ripgrep fd zsh curl git base-devel unzip
+      else
+        sudo pacman -Syu --needed neovim starship zoxide fzf ripgrep fd zsh curl git base-devel unzip python python-pip
+      fi
     elif command -v dnf &> /dev/null; then
       info "Installing dependencies via dnf..."
-      sudo dnf install -y neovim starship zoxide fzf ripgrep fd-find zsh curl git make gcc gcc-c++ unzip nodejs npm python3-pip
+      if [[ "$INSTALL_PROFILE" == "minimal" ]]; then
+        sudo dnf install -y neovim starship zoxide fzf ripgrep fd-find zsh curl git make gcc gcc-c++ unzip
+      else
+        sudo dnf install -y neovim starship zoxide fzf ripgrep fd-find zsh curl git make gcc gcc-c++ unzip python3-pip
+      fi
     else
       warn "No supported package manager found. Please install the following tools manually:"
-      warn "neovim, starship, zoxide, fzf, ripgrep, fd, zsh, curl, git, make, gcc, unzip, nodejs, npm"
+      warn "neovim, starship, zoxide, fzf, ripgrep, fd, zsh, curl, git, make, gcc, unzip"
     fi
+
+    # Install/configure Node.js
+    install_node_choice
 
     # Handle fd/fdfind naming difference on Debian/Ubuntu/Fedora
     if command -v fdfind &> /dev/null && ! command -v fd &> /dev/null; then
@@ -130,31 +266,45 @@ if ask_yes_no "Do you want to install/symlink the Neovim configuration?"; then
     ln -sfn "$DOTFILES_DIR/nvim" "$NVIM_CONFIG_DIR"
     success "Symlinked Neovim configuration!"
   fi
+
+  # Handle minimal profile flag file
+  if [ -d "$NVIM_CONFIG_DIR" ] || [ -L "$NVIM_CONFIG_DIR" ]; then
+    if [[ "$INSTALL_PROFILE" == "minimal" ]]; then
+      touch "$NVIM_CONFIG_DIR/.minimal"
+      info "Created minimal profile marker in Neovim config directory."
+    else
+      rm -f "$NVIM_CONFIG_DIR/.minimal"
+    fi
+  fi
 fi
 
 # 4. Ghostty Config Symlinking
-if ask_yes_no "Do you want to install/symlink the Ghostty configuration?"; then
-  GHOSTTY_CONFIG_DIR="$HOME/.config/ghostty"
-  if [ -d "$GHOSTTY_CONFIG_DIR" ] || [ -f "$GHOSTTY_CONFIG_DIR" ] || [ -L "$GHOSTTY_CONFIG_DIR" ]; then
-    if [ -L "$GHOSTTY_CONFIG_DIR" ] && [ "$(readlink "$GHOSTTY_CONFIG_DIR")" -ef "$DOTFILES_DIR/ghostty" ]; then
-      success "Ghostty configuration is already correctly symlinked!"
-    else
-      warn "Existing Ghostty directory found at ${GHOSTTY_CONFIG_DIR}."
-      if ask_yes_no "Back up current configuration and replace it?"; then
-        BACKUP_PATH="${GHOSTTY_CONFIG_DIR}${BACKUP_SUFFIX}"
-        mv "$GHOSTTY_CONFIG_DIR" "$BACKUP_PATH"
-        info "Backed up existing config to ${BACKUP_PATH}"
-        ln -sfn "$DOTFILES_DIR/ghostty" "$GHOSTTY_CONFIG_DIR"
-        success "Symlinked Ghostty configuration!"
+if [[ "$INSTALL_PROFILE" == "full" ]]; then
+  if ask_yes_no "Do you want to install/symlink the Ghostty configuration?"; then
+    GHOSTTY_CONFIG_DIR="$HOME/.config/ghostty"
+    if [ -d "$GHOSTTY_CONFIG_DIR" ] || [ -f "$GHOSTTY_CONFIG_DIR" ] || [ -L "$GHOSTTY_CONFIG_DIR" ]; then
+      if [ -L "$GHOSTTY_CONFIG_DIR" ] && [ "$(readlink "$GHOSTTY_CONFIG_DIR")" -ef "$DOTFILES_DIR/ghostty" ]; then
+        success "Ghostty configuration is already correctly symlinked!"
       else
-        info "Skipping Ghostty symlink."
+        warn "Existing Ghostty directory found at ${GHOSTTY_CONFIG_DIR}."
+        if ask_yes_no "Back up current configuration and replace it?"; then
+          BACKUP_PATH="${GHOSTTY_CONFIG_DIR}${BACKUP_SUFFIX}"
+          mv "$GHOSTTY_CONFIG_DIR" "$BACKUP_PATH"
+          info "Backed up existing config to ${BACKUP_PATH}"
+          ln -sfn "$DOTFILES_DIR/ghostty" "$GHOSTTY_CONFIG_DIR"
+          success "Symlinked Ghostty configuration!"
+        else
+          info "Skipping Ghostty symlink."
+        fi
       fi
+    else
+      mkdir -p "$HOME/.config"
+      ln -sfn "$DOTFILES_DIR/ghostty" "$GHOSTTY_CONFIG_DIR"
+      success "Symlinked Ghostty configuration!"
     fi
-  else
-    mkdir -p "$HOME/.config"
-    ln -sfn "$DOTFILES_DIR/ghostty" "$GHOSTTY_CONFIG_DIR"
-    success "Symlinked Ghostty configuration!"
   fi
+else
+  info "Skipping Ghostty configuration (Minimal Server profile active)."
 fi
 
 # 5. Oh My Zsh & Plugin Clones

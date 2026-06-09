@@ -6,7 +6,14 @@ return {
       config = function()
          require('nvim-treesitter').setup({
             -- A list of parser names, or "all"
-            ensure_installed = { "lua", "vim", "vimdoc", "javascript", "typescript", "tsx", "html", "css", "json", "markdown" },
+            ensure_installed = (function()
+               local is_minimal = vim.fn.exists('$SSH_CONNECTION') == 1 or vim.fn.filereadable(vim.fn.stdpath('config') .. '/.minimal') == 1
+               local parsers = { "lua", "vim", "vimdoc", "markdown" }
+               if not is_minimal then
+                  vim.list_extend(parsers, { "javascript", "typescript", "tsx", "html", "css", "json" })
+               end
+               return parsers
+            end)(),
 
             -- Install parsers synchronously (only applied to `ensure_installed`)
             sync_install = false,

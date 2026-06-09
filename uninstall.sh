@@ -80,6 +80,9 @@ OS="$(uname -s)"
 
 # 1. Neovim Config Removal & Backup Restore
 NVIM_CONFIG_DIR="$HOME/.config/nvim"
+rm -f "$NVIM_CONFIG_DIR/.minimal" 2>/dev/null || true
+rm -f "$DOTFILES_DIR/nvim/.minimal" 2>/dev/null || true
+
 if [ -L "$NVIM_CONFIG_DIR" ]; then
   info "Removing Neovim configuration symlink..."
   rm "$NVIM_CONFIG_DIR"
@@ -160,22 +163,34 @@ if [ -L "$FD_SYMLINK" ]; then
   success "Removed fd symlink."
 fi
 
+# 6.5. Remove standalone Node.js if installed
+if [ -d "$HOME/.local/lib/nodejs" ]; then
+  if ask_yes_no "Do you want to delete the standalone Node.js installation (~/.local/lib/nodejs)?"; then
+    info "Removing standalone Node.js..."
+    rm -rf "$HOME/.local/lib/nodejs"
+    rm -f "$HOME/.local/bin/node"
+    rm -f "$HOME/.local/bin/npm"
+    rm -f "$HOME/.local/bin/npx"
+    success "Removed standalone Node.js."
+  fi
+fi
+
 # 7. Package Uninstallation
-if ask_yes_no "Do you want to uninstall system packages installed by the dotfiles installer (neovim, starship, zoxide, fzf, ripgrep, fd-find, zsh, nodejs, npm, unzip)?"; then
+if ask_yes_no "Do you want to uninstall system packages installed by the dotfiles installer (neovim, starship, zoxide, fzf, ripgrep, fd-find, zsh, unzip)?"; then
   if [[ "$OS" == "Darwin" ]]; then
     info "Uninstalling dependencies via Homebrew..."
     brew uninstall --force neovim starship zoxide fzf ripgrep fd zsh node unzip || true
   elif [[ "$OS" == "Linux" ]]; then
     if command -v apt-get &> /dev/null; then
       info "Uninstalling dependencies via apt-get..."
-      sudo apt-get purge -y neovim starship zoxide fzf ripgrep fd-find zsh nodejs npm unzip || true
+      sudo apt-get purge -y neovim starship zoxide fzf ripgrep fd-find zsh unzip || true
       sudo apt-get autoremove -y || true
     elif command -v pacman &> /dev/null; then
       info "Uninstalling dependencies via pacman..."
-      sudo pacman -Rns --noconfirm neovim starship zoxide fzf ripgrep fd zsh nodejs npm unzip || true
+      sudo pacman -Rns --noconfirm neovim starship zoxide fzf ripgrep fd zsh unzip || true
     elif command -v dnf &> /dev/null; then
       info "Uninstalling dependencies via dnf..."
-      sudo dnf remove -y neovim starship zoxide fzf ripgrep fd-find zsh nodejs npm unzip || true
+      sudo dnf remove -y neovim starship zoxide fzf ripgrep fd-find zsh unzip || true
     else
       warn "No supported package manager found to uninstall dependencies."
     fi
