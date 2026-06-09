@@ -2,6 +2,9 @@
 # Custom Zsh Configurations, Keybindings, & Aliases
 # ==============================================================================
 
+# Ensure local bin directories are in PATH
+export PATH="$HOME/.local/bin:$HOME/bin:$PATH"
+
 # Quick editor opens & aliases
 alias v="nvim"
 alias p="pnpm"

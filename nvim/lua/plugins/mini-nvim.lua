@@ -96,19 +96,23 @@ return {
       vim.api.nvim_create_autocmd({ "VimEnter", "BufWinEnter" }, {
         desc = "Auto-open MiniMap for normal files",
         callback = function(event)
-          local file = event.file
-          -- Check if buffer is a normal file
-          if file == "" or vim.bo[event.buf].buftype ~= "" then
+          local buf = event.buf
+          if not buf or not vim.api.nvim_buf_is_valid(buf) then
             return
           end
-          local filetype = vim.bo[event.buf].filetype
+          local file = event.file
+          -- Check if buffer is a normal file
+          if file == "" or vim.bo[buf].buftype ~= "" then
+            return
+          end
+          local filetype = vim.bo[buf].filetype
           if vim.tbl_contains({ "gitcommit", "gitrebase", "NeogitStatus", "codediff-explorer", "codediff-history", "TelescopePrompt", "noice", "notify" }, filetype) then
             return
           end
           
           -- Wait a tiny bit so window layout is settled
           vim.schedule(function()
-            if vim.api.nvim_buf_is_valid(event.buf) then
+            if vim.api.nvim_buf_is_valid(buf) then
               pcall(minimap.open)
             end
           end)

@@ -75,23 +75,30 @@ if ask_yes_no "Do you want to check and install missing dependencies?"; then
     fi
 
     # Install packages
-    info "Installing dependencies via Homebrew (neovim, starship, zoxide, fzf, ripgrep, fd)..."
-    brew install neovim starship zoxide fzf ripgrep fd
+    info "Installing dependencies via Homebrew (neovim, starship, zoxide, fzf, ripgrep, fd, zsh, node, unzip)..."
+    brew install neovim starship zoxide fzf ripgrep fd zsh node unzip
   elif [[ "$OS" == "Linux" ]]; then
     # Try finding apt-get, pacman, or dnf
     if command -v apt-get &> /dev/null; then
       info "Installing dependencies via apt-get..."
       sudo apt-get update
-      sudo apt-get install -y neovim starship zoxide fzf ripgrep fd-find
+      sudo apt-get install -y neovim starship zoxide fzf ripgrep fd-find zsh curl git build-essential unzip nodejs npm python3 python3-pip python3-venv
     elif command -v pacman &> /dev/null; then
       info "Installing dependencies via pacman..."
-      sudo pacman -Syu --needed neovim starship zoxide fzf ripgrep fd
+      sudo pacman -Syu --needed neovim starship zoxide fzf ripgrep fd zsh curl git base-devel unzip nodejs npm python python-pip
     elif command -v dnf &> /dev/null; then
       info "Installing dependencies via dnf..."
-      sudo dnf install -y neovim starship zoxide fzf ripgrep fd-find
+      sudo dnf install -y neovim starship zoxide fzf ripgrep fd-find zsh curl git make gcc gcc-c++ unzip nodejs npm python3-pip
     else
       warn "No supported package manager found. Please install the following tools manually:"
-      warn "neovim, starship, zoxide, fzf, ripgrep, fd"
+      warn "neovim, starship, zoxide, fzf, ripgrep, fd, zsh, curl, git, make, gcc, unzip, nodejs, npm"
+    fi
+
+    # Handle fd/fdfind naming difference on Debian/Ubuntu/Fedora
+    if command -v fdfind &> /dev/null && ! command -v fd &> /dev/null; then
+      info "Creating symlink for fd..."
+      mkdir -p "$HOME/.local/bin"
+      ln -sfn "$(which fdfind)" "$HOME/.local/bin/fd"
     fi
   fi
   success "Dependencies updated!"
