@@ -3,7 +3,7 @@
 A consolidated, premium, and fully automated configuration for your CLI environment, natively supporting **macOS & Linux** (and Windows via WSL2). This repository houses configurations for **Neovim (v0.10+)**, **Ghostty Terminal**, and **Zsh** with pre-configured developer tools like `fzf`, `zoxide`, and `starship`.
 
 ### 📸 Setup Preview
-![Setup Preview](assets/preview.png)
+![Setup Preview](assets/preview.webp)
 
 ---
 
