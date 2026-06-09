@@ -12,7 +12,28 @@ Copy and run this single command to pull the repo and start the installer:
 git clone https://github.com/deva-raja/dotfiles.git ~/dotfiles && cd ~/dotfiles && ./install.sh
 ```
 
-### ⚙️ Installation Profiles
+---
+
+## 🗺️ Table of Contents
+
+* [⚙️ Installation Profiles](#️-installation-profiles)
+* [📦 Node.js Setup Choice](#-nodejs-setup-choice)
+* [🗑️ Reset & Uninstallation](#-reset--uninstallation)
+* [📦 Core CLI Tools Overview](#-core-cli-tools-overview)
+* [📝 Neovim Plugins Setup](#-neovim-plugins-setup)
+* [🐚 Zsh Shell Customizations](#-zsh-shell-customizations)
+* [💻 Ghostty Configs](#-ghostty-configs)
+* [⌨️ Keybindings & Shortcuts Cheatsheet](#-keybindings--shortcuts-cheatsheet)
+    * [Core & Text Editing](#core--text-editing)
+    * [Files, Buffers, & Windows](#files-buffers--windows)
+    * [Integrated Terminal (ToggleTerm)](#integrated-terminal-toggleterm)
+    * [Git, Diff, & Version Control](#git-diff--version-control)
+    * [LSP & Code Intelligence](#lsp--code-intelligence)
+    * [Other Utilities (Bookmarks, Minimap, Zen)](#other-utilities-bookmarks-minimap-zen)
+
+---
+
+## ⚙️ Installation Profiles
 
 Upon running the installer, it will auto-detect your environment and prompt you to choose an installation profile:
 
@@ -23,7 +44,9 @@ Upon running the installer, it will auto-detect your environment and prompt you 
    * Skips terminal GUI symlinks (Ghostty) and optional system-wide Python dependencies.
    * Disables heavy Node-based language servers and auto-running minimap features in Neovim to **save RAM and CPU**. Only essential LSPs (e.g. Lua, Bash) are enabled by default.
 
-### 📦 Node.js Setup Choice
+---
+
+## 📦 Node.js Setup Choice
 
 If Node.js is not found on your system, the installer offers three options to avoid system bloat:
 1. **Standalone (Recommended)**: Downloads and extracts the official precompiled Node.js binary into `~/.local/lib/nodejs/` and symlinks it to your path. It takes 3 seconds, needs no `sudo`, and keeps your host system completely clean.
@@ -49,21 +72,6 @@ This script will:
 * Optionally delete the repository folder itself (self-destruction).
 
 ---
-
-## 🗺️ Table of Contents
-
-* [📦 Core CLI Tools Overview](#-core-cli-tools-overview)
-* [📝 Neovim Plugins Setup](#-neovim-plugins-setup)
-* [🐚 Zsh Shell Customizations](#-zsh-shell-customizations)
-* [💻 Ghostty Configs](#-ghostty-configs)
-* [🗑️ Reset & Uninstallation](#-reset--uninstallation)
-* [⌨️ Keybindings & Shortcuts Cheatsheet](#-keybindings--shortcuts-cheatsheet)
-    * [Core & Text Editing](#core--text-editing)
-    * [Files, Buffers, & Windows](#files-buffers--windows)
-    * [Integrated Terminal (ToggleTerm)](#integrated-terminal-toggleterm)
-    * [Git, Diff, & Version Control](#git-diff--version-control)
-    * [LSP & Code Intelligence](#lsp--code-intelligence)
-    * [Other Utilities (Bookmarks, Minimap, Zen)](#other-utilities-bookmarks-minimap-zen)
 
 ---
 
