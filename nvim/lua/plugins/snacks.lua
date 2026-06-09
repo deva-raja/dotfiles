@@ -1,3 +1,5 @@
+local is_minimal = vim.fn.exists('$SSH_CONNECTION') == 1 or vim.fn.filereadable(vim.fn.stdpath('config') .. '/.minimal') == 1
+
 return {
   {
     "folke/snacks.nvim",
@@ -14,7 +16,7 @@ return {
       explorer = { enabled = false },
       git = { enabled = false },
       gitbrowse = { enabled = false },
-      image = { enabled = false },
+      image = { enabled = not is_minimal },
       indent = { enabled = false },
       input = { enabled = false },
       notifier = { enabled = false },

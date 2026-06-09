@@ -1,6 +1,9 @@
 # 🌌 Portable Dotfiles
 
-A consolidated, premium, and fully automated configuration for your CLI environment. This repository houses configurations for **Neovim (v0.10+)**, **Ghostty Terminal**, and **Zsh** with pre-configured developer tools like `fzf`, `zoxide`, and `starship`.
+A consolidated, premium, and fully automated configuration for your CLI environment, natively supporting **macOS & Linux** (and Windows via WSL2). This repository houses configurations for **Neovim (v0.10+)**, **Ghostty Terminal**, and **Zsh** with pre-configured developer tools like `fzf`, `zoxide`, and `starship`.
+
+### 📸 Setup Preview
+![Setup Preview](assets/preview.png)
 
 ---
 
@@ -101,6 +104,8 @@ Your Neovim configurations are split into structured, self-contained plugins und
 * **Bookmarks:** `bookmarks.nvim` saves lines of interest per directory/project.
 * **Minimap:** `mini.map` toggles a high-performance visual sidebar code minimap.
 * **Zen Mode:** `zen-mode.nvim` clears the layout for focused coding.
+* **Markdown Renderer:** `render-markdown.nvim` renders rich markdown headers, tables, and blocks directly in Neovim buffers.
+* **Image Viewer:** `snacks.nvim`'s image module enables terminal-based image rendering inside Neovim buffers (supported in Ghostty).
 
 ---
 
@@ -205,13 +210,14 @@ gf              ->  Go to file path (resolves TypeScript paths/aliases like '@/c
 <leader>ca      ->  Open LSP code actions menu
 ```
 
-### Other Utilities (Bookmarks, Minimap, Zen)
+### Other Utilities (Bookmarks, Minimap, Zen, Markdown)
 ```text
 <leader>ba      ->  Add a bookmark on the current cursor line
 <leader>bt      ->  Toggle/List bookmarks menu
 <leader>mm      ->  Toggle visual code minimap sidebar
 <leader>mf      ->  Toggle focus to/from minimap sidebar
 <leader>z       ->  Toggle Zen mode (centered buffer focus, hides UI elements)
+<leader>mr      ->  Toggle Markdown rich rendering (rendered view in buffer)
 ```
 
 ---

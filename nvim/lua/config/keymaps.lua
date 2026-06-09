@@ -190,6 +190,12 @@ map("n", "<leader>bt", function() require("bookmarks").toggle_bookmarks() end, {
 map("n", "<leader>mm", function() require("mini.map").toggle() end, { desc = "Toggle Minimap" })
 map("n", "<leader>mf", function() require("mini.map").toggle_focus() end, { desc = "Focus Minimap" })
 
+-- Markdown rendering (m for Markdown, r for Render)
+local is_minimal = vim.fn.exists('$SSH_CONNECTION') == 1 or vim.fn.filereadable(vim.fn.stdpath('config') .. '/.minimal') == 1
+if not is_minimal then
+  map("n", "<leader>mr", "<cmd>RenderMarkdown toggle<CR>", { desc = "Toggle Markdown rendering" })
+end
+
 
 -- ==========================================
 -- 8. TERMINAL (ToggleTerm)
