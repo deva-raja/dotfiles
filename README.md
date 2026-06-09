@@ -17,8 +17,6 @@ git clone https://github.com/deva-raja/dotfiles.git ~/dotfiles && cd ~/dotfiles 
 ## 🗺️ Table of Contents
 
 * [⚙️ Installation Profiles](#️-installation-profiles)
-* [📦 Node.js Setup Choice](#-nodejs-setup-choice)
-* [🗑️ Reset & Uninstallation](#-reset--uninstallation)
 * [📦 Core CLI Tools Overview](#-core-cli-tools-overview)
 * [📝 Neovim Plugins Setup](#-neovim-plugins-setup)
 * [🐚 Zsh Shell Customizations](#-zsh-shell-customizations)
@@ -30,6 +28,7 @@ git clone https://github.com/deva-raja/dotfiles.git ~/dotfiles && cd ~/dotfiles 
     * [Git, Diff, & Version Control](#git-diff--version-control)
     * [LSP & Code Intelligence](#lsp--code-intelligence)
     * [Other Utilities (Bookmarks, Minimap, Zen)](#other-utilities-bookmarks-minimap-zen)
+* [🗑️ Reset & Uninstallation](#-reset--uninstallation)
 
 ---
 
@@ -44,32 +43,12 @@ Upon running the installer, it will auto-detect your environment and prompt you 
    * Skips terminal GUI symlinks (Ghostty) and optional system-wide Python dependencies.
    * Disables heavy Node-based language servers and auto-running minimap features in Neovim to **save RAM and CPU**. Only essential LSPs (e.g. Lua, Bash) are enabled by default.
 
----
+### 📦 Node.js Installation Option
 
-## 📦 Node.js Setup Choice
-
-If Node.js is not found on your system, the installer offers three options to avoid system bloat:
-1. **Standalone (Recommended)**: Downloads and extracts the official precompiled Node.js binary into `~/.local/lib/nodejs/` and symlinks it to your path. It takes 3 seconds, needs no `sudo`, and keeps your host system completely clean.
-2. **System Package Manager**: Installs Node.js globally using your OS package manager (`apt-get`, `pacman`, or `dnf`).
-3. **Skip**: Skips Node installation if you prefer configuring it manually later (some Neovim web LSPs will not load until Node is present).
-
----
-
-## 🗑️ Reset & Uninstallation
-
-If you ever want to revert all changes, restore your original settings from backups, and wipe caches, run the uninstaller script:
-
-```bash
-./uninstall.sh
-```
-
-This script will:
-* Remove config symlinks and **restore your original configurations** from backups (`.bak.*`).
-* Clean up Neovim user directories (`~/.local/share/nvim`, `~/.local/state/nvim`, `~/.cache/nvim`) to start completely fresh.
-* Uninstall system package dependencies added by the installer.
-* Safely strip the custom configuration block from your `~/.zshrc`.
-* Remove standalone Node.js and local bin symlinks.
-* Optionally delete the repository folder itself (self-destruction).
+If Node.js is missing on your host machine, you will be prompted to choose an installation method:
+* **Standalone (Recommended)**: Downloads and extracts the official precompiled Node.js binary into `~/.local/lib/nodejs/` and symlinks it. This takes 3 seconds, runs entirely in user-space (no `sudo` required), and prevents system-wide package bloat.
+* **System Package Manager**: Installs Node.js globally using your OS package manager (`apt-get`, `pacman`, etc.).
+* **Skip**: Skips installation (note: some web LSPs inside Neovim will require manual node setup later).
 
 ---
 
@@ -234,3 +213,22 @@ gf              ->  Go to file path (resolves TypeScript paths/aliases like '@/c
 <leader>mf      ->  Toggle focus to/from minimap sidebar
 <leader>z       ->  Toggle Zen mode (centered buffer focus, hides UI elements)
 ```
+
+---
+
+## 🗑️ Reset & Uninstallation
+
+If you ever want to revert all changes, restore your original settings from backups, and wipe caches, run the uninstaller script:
+
+```bash
+./uninstall.sh
+```
+
+This script will:
+* Remove config symlinks and **restore your original configurations** from backups (`.bak.*`).
+* Clean up Neovim user directories (`~/.local/share/nvim`, `~/.local/state/nvim`, `~/.cache/nvim`) to start completely fresh.
+* Uninstall system package dependencies added by the installer.
+* Safely strip the custom configuration block from your `~/.zshrc`.
+* Remove standalone Node.js and local bin symlinks.
+* Optionally delete the repository folder itself (self-destruction).
+
