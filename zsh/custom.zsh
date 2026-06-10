@@ -28,17 +28,6 @@ if command -v fzf &> /dev/null; then
     source "$HOME/fzf-git.sh"
   fi
 
-  # Integrate 'z' navigation with fzf
-  if [ -f "/opt/homebrew/etc/profile.d/z.sh" ]; then
-    . /opt/homebrew/etc/profile.d/z.sh
-    unalias z 2> /dev/null
-    z() {
-      local dir
-      dir=$(
-        _z 2>&1 | fzf --height 40% --layout reverse --info inline --nth 2.. --tac --no-sort --query "$*" --accept-nth 2..
-      ) && cd "$dir"
-    }
-  fi
 fi
 
 # Accept zsh-autosuggestions word-by-word with Ctrl + Space
