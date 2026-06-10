@@ -51,6 +51,11 @@ map({ "n", "x", "o" }, "gl", "%", { desc = "Go to matching bracket" })
 map("n", "<C-o>", "<C-i>", { desc = "Jump forward in history" })
 map("n", "<C-i>", "<C-o>", { desc = "Jump backward in history" })
 
+-- Alternative history navigation using Ctrl+Minus (backward) and Ctrl+Plus/Equal (forward)
+map("n", "<C-->", "<C-i>", { remap = true, desc = "Jump backward in history" })
+map("n", "<C-+>", "<C-o>", { remap = true, desc = "Jump forward in history" })
+map("n", "<C-=>", "<C-o>", { remap = true, desc = "Jump forward in history" })
+
 -- Jump back in jump list (<leader>a -> Ctrl+I which is now backward)
 map("n", "<leader>a", "<C-i>", { desc = "Jump back in history" })
 
