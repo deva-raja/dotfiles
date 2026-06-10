@@ -308,14 +308,68 @@ local function cycle_terminals(direction)
   next_term:open()
 end
 
--- Helper function to close the current terminal (fully destroy/shutdown session)
+-- Helper function to focus any window currently showing a ToggleTerm buffer
+local function focus_any_terminal_window()
+  local wins = vim.api.nvim_tabpage_list_wins(0)
+  for _, win in ipairs(wins) do
+    local buf = vim.api.nvim_win_get_buf(win)
+    if vim.bo[buf].filetype == "toggleterm" then
+      vim.api.nvim_set_current_win(win)
+      return true
+    end
+  end
+  return false
+end
+
+-- Helper function to close the current terminal (fully destroy/shutdown session) and switch to another
 local function close_current_terminal()
   local term_module = require("toggleterm.terminal")
-  local _, term = term_module.identify()
-  if term then
-    term:shutdown()
+  local _, current_term = term_module.identify()
+  if current_term then
+    local all_terms = term_module.get_all(true)
+    -- Sort active terminals by their ID
+    table.sort(all_terms, function(a, b) return a.id < b.id end)
+    
+    local current_idx = nil
+    for i, term in ipairs(all_terms) do
+      if term.id == current_term.id then
+        current_idx = i
+        break
+      end
+    end
+    
+    local next_term = nil
+    if current_idx and #all_terms > 1 then
+      if current_idx > 1 then
+        next_term = all_terms[current_idx - 1]
+      else
+        next_term = all_terms[current_idx + 1]
+      end
+    end
+    
+    if next_term then
+      cycle_terminals("prev")
+      vim.schedule(function()
+        current_term.window = nil
+        current_term:shutdown()
+        vim.defer_fn(function()
+          focus_any_terminal_window()
+        end, 100)
+      end)
+    else
+      current_term:shutdown()
+    end
   else
     vim.cmd("bdelete!")
+  end
+end
+
+-- Helper function to close all terminals (destroys all sessions and UI)
+local function close_all_terminals()
+  local term_module = require("toggleterm.terminal")
+  local all_terms = term_module.get_all(true)
+  for _, term in ipairs(all_terms) do
+    term:shutdown()
   end
 end
 
@@ -378,6 +432,9 @@ vim.api.nvim_create_autocmd("TermOpen", {
 
     -- Close terminal with 'q' in normal mode inside terminal buffer (destroys process)
     map("n", "q", close_current_terminal, vim.tbl_extend("force", opts, { desc = "Close terminal (destroy)" }))
+
+    -- Close all terminals with 'Q' in normal mode inside terminal buffer (destroys all processes)
+    map("n", "Q", close_all_terminals, vim.tbl_extend("force", opts, { desc = "Close all terminals (destroy all)" }))
 
     -- Hide terminal with 'Leader + q' in normal mode inside terminal buffer (keeps session running)
     map("n", "<leader>q", hide_current_terminal, vim.tbl_extend("force", opts, { desc = "Hide terminal (keep running)" }))
