@@ -386,6 +386,7 @@ vim.api.nvim_create_autocmd("TermOpen", {
 
 -- Esc in terminal mode to return to normal mode inside ToggleTerm (global fallback/helper)
 map("t", "<Esc>", [[<C-\><C-n>]], { desc = "Exit terminal mode" })
+map("t", "<C-Esc>", "<Esc>", { desc = "Send Esc to terminal" })
 
 
 
