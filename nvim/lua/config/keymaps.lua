@@ -116,7 +116,7 @@ map("i", "<Esc><BS>", "<C-w>", { desc = "Delete word before cursor" })
 map("i", "<Esc><Backspace>", "<C-w>", { desc = "Delete word before cursor" })
 
 -- Toggle Neo-tree sidebar with Command + \ (mimicking VS Code sidebar toggle)
-map({ "n", "i", "x" }, "<D-\\>", "<cmd>Neotree toggle<CR>", { desc = "Toggle Neo-tree sidebar" })
+map({ "n", "i", "x" }, "<D-\\>", "<cmd>Neotree toggle reveal<CR>", { desc = "Toggle Neo-tree sidebar and reveal current file" })
 
 -- Toggle comments with Command + / (mimicking VS Code)
 map("n", "<D-/>", "gcc", { remap = true, desc = "Toggle comment" })

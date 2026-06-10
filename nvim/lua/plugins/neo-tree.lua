@@ -12,6 +12,11 @@ return {
       filesystem = {
         hijack_netrw_behavior = "disabled",
       },
+      window = {
+        mappings = {
+          ["l"] = "open",
+        },
+      },
     },
   }
 }
