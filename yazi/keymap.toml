@@ -1,0 +1,8 @@
+# ==============================================================================
+# Yazi Keymap Configuration (keymap.toml)
+# ==============================================================================
+
+[[mgr.prepend_keymap]]
+on   = "F"
+run  = "plugin fzf"
+desc = "Jump to a file/directory via fzf"

@@ -23,6 +23,7 @@ git clone https://github.com/deva-raja/dotfiles.git ~/dotfiles && cd ~/dotfiles 
 * [📝 Neovim Plugins Setup](#-neovim-plugins-setup)
 * [🐚 Zsh Shell Customizations](#-zsh-shell-customizations)
 * [💻 Ghostty Configs](#-ghostty-configs)
+* [🗂️ Yazi File Manager](#️-yazi-file-manager)
 * [⌨️ Keybindings & Shortcuts Cheatsheet](#-keybindings--shortcuts-cheatsheet)
     * [Core & Text Editing](#core--text-editing)
     * [Files, Buffers, & Windows](#files-buffers--windows)
@@ -66,6 +67,7 @@ The installation script automatically installs and configures the following deve
 * **Fzf (`fzf`):** A command-line fuzzy finder, integrated with history, autocompletions, and directory navigation.
 * **Ripgrep (`rg`):** A line-oriented search tool that is used under the hood by Telescope for ultra-fast text searches.
 * **Fd-find (`fd`):** A simple, fast alternative to the `find` command, used by Telescope for listing files.
+* **Yazi (`yazi`):** A blazing-fast, terminal file manager written in Rust, offering rich previews, tabbed workspaces, and fully automated directory sorting.
 
 ---
 
@@ -116,9 +118,11 @@ Sourced automatically via `zsh/custom.zsh` into your `~/.zshrc`:
 * **Autosuggestions:** Faint gray suggestions appear based on history.
     * Press `Ctrl + Space` to accept the suggestion **word-by-word**.
     * Press `Right-Arrow` or `End` to accept the **full line**.
-* **Quick Aliases:**
-    * `v` opens Neovim (`nvim`)
-    * `p` runs `pnpm`
+* **Quick Aliases & Functions:**
+    * `y` opens Yazi and automatically changes your shell's working directory to your last visited folder on exit.
+    * `yc` opens Yazi with 2 tabs: Tab 1 at `~/Downloads` (sorted by birth time reverse) and Tab 2 at your current folder (focused).
+    * `v` opens Neovim (`nvim`).
+    * `p` runs `pnpm`.
 
 ---
 
@@ -127,6 +131,16 @@ Sourced automatically via `zsh/custom.zsh` into your `~/.zshrc`:
 Sets up a clean developer layout:
 * **Background Opacity:** `0.90`
 * **Background Blur:** `true` (enables blurred glassmorphism transparent terminals in windowed mode).
+
+---
+
+## 🗂️ Yazi File Manager
+
+Your Yazi configuration is integrated with your terminal environment to support quick project navigations:
+* **Folder-Specific Sorting Hook:** Subscribes to directory changes natively. When entering `~/Downloads` (or any subfolder), it dynamically switches the sorting to **birth time reverse (newest first, no folder-first grouping)** so downloaded items appear at the very top. Navigating away instantly restores default alphabetical sorting.
+* **Dual-Tab Startup (`yc`):** Opens a dual-tab configuration: Tab 1 focused at `~/Downloads` (for copying downloads) and Tab 2 focused at your current workspace.
+* **Neovim Editor Binding:** Pressing `Enter` on any text or code file automatically opens it inside **Neovim (`nvim`)** in block-mode.
+
 
 ---
 
@@ -222,6 +236,20 @@ gf              ->  Go to file path (resolves TypeScript paths/aliases like '@/c
 <leader>mr      ->  Toggle Markdown rich rendering (rendered view in buffer)
 ```
 
+### Yazi File Manager Shortcuts
+```text
+y               ->  Open Yazi (Standard wrapper with shell directory change on exit)
+yc              ->  Open Yazi in dual-tab mode (Tab 1: Downloads, Tab 2: Current Folder)
+F               ->  Jump to a file/directory via fzf search (inside Yazi)
+z               ->  Jump to a file/directory via fzf search
+Z               ->  Jump to a directory via zoxide history
+Enter           ->  Open selected text file in Neovim (in block-mode)
+t               ->  Create a new tab
+1 - 9           ->  Switch to the N-th tab
+[ / ]           ->  Switch to the previous / next tab
+q               ->  Close Yazi (returning to shell)
+```
+
 ---
 
 ## 🗑️ Reset & Uninstallation
@@ -233,7 +261,7 @@ If you ever want to revert all changes, restore your original settings from back
 ```
 
 This script will:
-* Remove config symlinks and **restore your original configurations** from backups (`.bak.*`).
+* Remove config symlinks (Neovim, Ghostty, Yazi) and **restore your original configurations** from backups (`.bak.*`).
 * Clean up Neovim user directories (`~/.local/share/nvim`, `~/.local/state/nvim`, `~/.cache/nvim`) to start completely fresh.
 * Uninstall system package dependencies added by the installer.
 * Safely strip the custom configuration block from your `~/.zshrc`.

@@ -182,6 +182,13 @@ info "Selected Profile: ${INSTALL_PROFILE^^}"
 
 # 2. Dependency Installer
 if ask_yes_no "Do you want to check and install missing dependencies?"; then
+  INSTALL_YAZI=false
+  if [[ "$INSTALL_PROFILE" == "full" ]]; then
+    if ask_yes_no "Do you want to install Yazi (terminal file manager) and its optional preview dependencies?"; then
+      INSTALL_YAZI=true
+    fi
+  fi
+
   if [[ "$OS" == "Darwin" ]]; then
     # Install Homebrew if missing
     if ! command -v brew &> /dev/null; then
@@ -203,6 +210,11 @@ if ask_yes_no "Do you want to check and install missing dependencies?"; then
         info "Installing Ghostty via Homebrew Cask..."
         brew install --cask ghostty
       fi
+
+      if [[ "$INSTALL_YAZI" == "true" ]]; then
+        info "Installing Yazi and optional dependencies via Homebrew..."
+        brew install yazi ffmpeg sevenzip jq poppler imagemagick
+      fi
     fi
   elif [[ "$OS" == "Linux" ]]; then
     # Try finding apt-get, pacman, or dnf
@@ -213,6 +225,19 @@ if ask_yes_no "Do you want to check and install missing dependencies?"; then
         sudo apt-get install -y neovim starship zoxide fzf ripgrep fd-find curl git build-essential unzip
       else
         sudo apt-get install -y neovim starship zoxide fzf ripgrep fd-find zsh curl git build-essential unzip python3 python3-pip python3-venv
+        
+        if [[ "$INSTALL_YAZI" == "true" ]]; then
+          info "Installing Yazi dependencies via apt-get..."
+          sudo apt-get install -y ffmpeg jq poppler-utils ripgrep fd-find zoxide fzf imagemagick p7zip-full
+          if ! command -v yazi &> /dev/null; then
+            info "Installing Yazi via snap..."
+            if command -v snap &> /dev/null; then
+              sudo snap install yazi --classic
+            else
+              warn "Snap not found. Please install Yazi manually from: https://github.com/sxyazi/yazi"
+            fi
+          fi
+        fi
       fi
     elif command -v pacman &> /dev/null; then
       info "Installing dependencies via pacman..."
@@ -220,6 +245,11 @@ if ask_yes_no "Do you want to check and install missing dependencies?"; then
         sudo pacman -Syu --needed neovim starship zoxide fzf ripgrep fd curl git base-devel unzip
       else
         sudo pacman -Syu --needed neovim starship zoxide fzf ripgrep fd zsh curl git base-devel unzip python python-pip
+        
+        if [[ "$INSTALL_YAZI" == "true" ]]; then
+          info "Installing Yazi and dependencies via pacman..."
+          sudo pacman -Syu --needed yazi ffmpeg 7zip jq poppler fd ripgrep fzf zoxide resvg imagemagick
+        fi
       fi
     elif command -v dnf &> /dev/null; then
       info "Installing dependencies via dnf..."
@@ -227,6 +257,15 @@ if ask_yes_no "Do you want to check and install missing dependencies?"; then
         sudo dnf install -y neovim starship zoxide fzf ripgrep fd-find curl git make gcc gcc-c++ unzip
       else
         sudo dnf install -y neovim starship zoxide fzf ripgrep fd-find zsh curl git make gcc gcc-c++ unzip python3-pip
+        
+        if [[ "$INSTALL_YAZI" == "true" ]]; then
+          info "Installing Yazi and dependencies via dnf..."
+          if ! command -v dnf-plugins-core &> /dev/null; then
+            sudo dnf install -y dnf-plugins-core
+          fi
+          sudo dnf copr enable -y lihaohong/yazi
+          sudo dnf install -y yazi ffmpeg 7zip jq poppler imagemagick
+        fi
       fi
     else
       warn "No supported package manager found. Please install the following tools manually:"
@@ -313,7 +352,36 @@ else
   info "Skipping Ghostty configuration (Minimal Server profile active)."
 fi
 
-# 5. Oh My Zsh & Plugin Clones
+# 5. Yazi Config Symlinking
+if [[ "$INSTALL_PROFILE" == "full" ]]; then
+  if ask_yes_no "Do you want to install/symlink the Yazi configuration?"; then
+    YAZI_CONFIG_DIR="$HOME/.config/yazi"
+    if [ -d "$YAZI_CONFIG_DIR" ] || [ -f "$YAZI_CONFIG_DIR" ] || [ -L "$YAZI_CONFIG_DIR" ]; then
+      if [ -L "$YAZI_CONFIG_DIR" ] && [ "$(readlink "$YAZI_CONFIG_DIR")" -ef "$DOTFILES_DIR/yazi" ]; then
+        success "Yazi configuration is already correctly symlinked!"
+      else
+        warn "Existing Yazi directory found at ${YAZI_CONFIG_DIR}."
+        if ask_yes_no "Back up current configuration and replace it?"; then
+          BACKUP_PATH="${YAZI_CONFIG_DIR}${BACKUP_SUFFIX}"
+          mv "$YAZI_CONFIG_DIR" "$BACKUP_PATH"
+          info "Backed up existing config to ${BACKUP_PATH}"
+          ln -sfn "$DOTFILES_DIR/yazi" "$YAZI_CONFIG_DIR"
+          success "Symlinked Yazi configuration!"
+        else
+          info "Skipping Yazi symlink."
+        fi
+      fi
+    else
+      mkdir -p "$HOME/.config"
+      ln -sfn "$DOTFILES_DIR/yazi" "$YAZI_CONFIG_DIR"
+      success "Symlinked Yazi configuration!"
+    fi
+  fi
+else
+  info "Skipping Yazi configuration (Minimal Server profile active)."
+fi
+
+# 6. Oh My Zsh & Plugin Clones
 if [[ "$INSTALL_PROFILE" == "full" ]] && command -v zsh &> /dev/null; then
   if ask_yes_no "Do you want to set up Oh My Zsh & Zsh plugins?"; then
     # Oh My Zsh Check
@@ -371,7 +439,7 @@ else
   info "Skipping Oh My Zsh & plugins setup (not applicable for Minimal profile or Zsh missing)."
 fi
 
-# 6. Sourcing dotfiles custom zsh in ~/.zshrc
+# 7. Sourcing dotfiles custom zsh in ~/.zshrc
 ZSH_INTEGRATED=false
 if [[ "$INSTALL_PROFILE" == "full" ]] && command -v zsh &> /dev/null; then
   if ask_yes_no "Do you want to append/update the custom Zsh integrations in your ~/.zshrc?"; then

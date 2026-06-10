@@ -120,6 +120,22 @@ elif [ -d "$GHOSTTY_CONFIG_DIR" ]; then
   fi
 fi
 
+# 3.5. Yazi Config Removal & Backup Restore
+YAZI_CONFIG_DIR="$HOME/.config/yazi"
+if [ -L "$YAZI_CONFIG_DIR" ]; then
+  info "Removing Yazi configuration symlink..."
+  rm "$YAZI_CONFIG_DIR"
+  success "Removed Yazi symlink."
+  restore_backup "$YAZI_CONFIG_DIR"
+elif [ -d "$YAZI_CONFIG_DIR" ]; then
+  if ask_yes_no "Found a non-symlink Yazi config folder at ${YAZI_CONFIG_DIR}. Delete it?"; then
+    rm -rf "$YAZI_CONFIG_DIR"
+    success "Deleted Yazi config folder."
+    restore_backup "$YAZI_CONFIG_DIR"
+  fi
+fi
+
+
 # 4. Oh My Zsh & Custom Plugins Removal
 if ask_yes_no "Do you want to delete Oh My Zsh and its custom plugins (~/.oh-my-zsh)?"; then
   if [ -d "$HOME/.oh-my-zsh" ]; then
@@ -176,21 +192,24 @@ if [ -d "$HOME/.local/lib/nodejs" ]; then
 fi
 
 # 7. Package Uninstallation
-if ask_yes_no "Do you want to uninstall system packages installed by the dotfiles installer (neovim, starship, zoxide, fzf, ripgrep, fd-find, zsh, unzip)?"; then
+if ask_yes_no "Do you want to uninstall system packages installed by the dotfiles installer (neovim, starship, zoxide, fzf, ripgrep, fd-find, zsh, unzip, yazi)?"; then
   if [[ "$OS" == "Darwin" ]]; then
     info "Uninstalling dependencies via Homebrew..."
-    brew uninstall --force neovim starship zoxide fzf ripgrep fd zsh node unzip || true
+    brew uninstall --force neovim starship zoxide fzf ripgrep fd zsh node unzip yazi ffmpeg sevenzip jq poppler imagemagick || true
   elif [[ "$OS" == "Linux" ]]; then
     if command -v apt-get &> /dev/null; then
       info "Uninstalling dependencies via apt-get..."
-      sudo apt-get purge -y neovim starship zoxide fzf ripgrep fd-find zsh unzip || true
+      sudo apt-get purge -y neovim starship zoxide fzf ripgrep fd-find zsh unzip ffmpeg jq poppler-utils imagemagick p7zip-full || true
+      if command -v snap &> /dev/null; then
+        sudo snap remove yazi || true
+      fi
       sudo apt-get autoremove -y || true
     elif command -v pacman &> /dev/null; then
       info "Uninstalling dependencies via pacman..."
-      sudo pacman -Rns --noconfirm neovim starship zoxide fzf ripgrep fd zsh unzip || true
+      sudo pacman -Rns --noconfirm neovim starship zoxide fzf ripgrep fd zsh unzip yazi ffmpeg 7zip jq poppler resvg imagemagick || true
     elif command -v dnf &> /dev/null; then
       info "Uninstalling dependencies via dnf..."
-      sudo dnf remove -y neovim starship zoxide fzf ripgrep fd-find zsh unzip || true
+      sudo dnf remove -y neovim starship zoxide fzf ripgrep fd-find zsh unzip yazi ffmpeg 7zip jq poppler imagemagick || true
     else
       warn "No supported package manager found to uninstall dependencies."
     fi
