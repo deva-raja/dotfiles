@@ -1,2 +1,11 @@
 background-opacity = 0.90
 background-blur = true
+
+# Unbind keys to pass them through to Neovim / ToggleTerm
+keybind = super+n=unbind
+keybind = super+8=unbind
+keybind = super+9=unbind
+keybind = super+digit_8=unbind
+keybind = super+digit_9=unbind
+keybind = super+j=unbind
+

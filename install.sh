@@ -197,6 +197,12 @@ if ask_yes_no "Do you want to check and install missing dependencies?"; then
     else
       info "Installing dependencies via Homebrew (neovim, starship, zoxide, fzf, ripgrep, fd, zsh, node, unzip)..."
       brew install neovim starship zoxide fzf ripgrep fd zsh node unzip
+      
+      # Install Ghostty on macOS if not installed
+      if ! command -v ghostty &> /dev/null && ! brew list --cask ghostty &> /dev/null; then
+        info "Installing Ghostty via Homebrew Cask..."
+        brew install --cask ghostty
+      fi
     fi
   elif [[ "$OS" == "Linux" ]]; then
     # Try finding apt-get, pacman, or dnf
