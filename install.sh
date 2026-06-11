@@ -178,7 +178,7 @@ else
   fi
 fi
 
-info "Selected Profile: ${INSTALL_PROFILE^^}"
+info "Selected Profile: $(echo "$INSTALL_PROFILE" | tr '[:lower:]' '[:upper:]')"
 
 # 2. Dependency Installer
 if ask_yes_no "Do you want to check and install missing dependencies?"; then
