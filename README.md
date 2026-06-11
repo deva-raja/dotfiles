@@ -18,20 +18,21 @@ git clone https://github.com/deva-raja/dotfiles.git ~/dotfiles && cd ~/dotfiles 
 
 ## 🗺️ Table of Contents
 
-* [⚙️ Installation Profiles](#️-installation-profiles)
-* [📦 Core CLI Tools Overview](#-core-cli-tools-overview)
-* [📝 Neovim Plugins Setup](#-neovim-plugins-setup)
-* [🐚 Zsh Shell Customizations](#-zsh-shell-customizations)
-* [💻 Ghostty Configs](#-ghostty-configs)
-* [🗂️ Yazi File Manager](#️-yazi-file-manager)
-* [⌨️ Keybindings & Shortcuts Cheatsheet](#-keybindings--shortcuts-cheatsheet)
+* [⚙️ Installation Profiles](#installation-profiles)
+* [📦 Core CLI Tools Overview](#core-cli-tools-overview)
+* [📝 Neovim Plugins Setup](#neovim-plugins-setup)
+* [🐚 Zsh Shell Customizations](#zsh-shell-customizations)
+* [💻 Ghostty Configs](#ghostty-configs)
+* [🗂️ Yazi File Manager](#yazi-file-manager)
+* [⌨️ Keybindings & Shortcuts Cheatsheet](#keybindings--shortcuts-cheatsheet)
     * [Core & Text Editing](#core--text-editing)
     * [Files, Buffers, & Windows](#files-buffers--windows)
     * [Integrated Terminal (ToggleTerm)](#integrated-terminal-toggleterm)
     * [Git, Diff, & Version Control](#git-diff--version-control)
     * [LSP & Code Intelligence](#lsp--code-intelligence)
-    * [Other Utilities (Bookmarks, Minimap, Zen)](#other-utilities-bookmarks-minimap-zen)
-* [🗑️ Reset & Uninstallation](#-reset--uninstallation)
+    * [Other Utilities (Bookmarks, Minimap, Zen, Markdown)](#other-utilities-bookmarks-minimap-zen-markdown)
+    * [Yazi File Manager Shortcuts](#yazi-file-manager-shortcuts)
+* [🗑️ Reset & Uninstallation](#reset--uninstallation)
 
 ---
 
