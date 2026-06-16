@@ -9,6 +9,7 @@ export PATH="$HOME/.local/bin:$HOME/bin:$PATH"
 export EDITOR="nvim"
 alias v="nvim"
 alias p="pnpm"
+alias pw="playwright-cli"
 
 # Integrate zoxide (smarter cd command)
 if command -v zoxide &> /dev/null; then

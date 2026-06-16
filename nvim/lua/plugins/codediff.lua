@@ -13,6 +13,7 @@ return {
         view = {
           quit = "q",
           toggle_layout = "<D-c>", -- Command + c toggles layout
+          show_help = "?",
         }
       }
     },
