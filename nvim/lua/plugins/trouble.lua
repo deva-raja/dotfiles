@@ -7,7 +7,7 @@ return {
       {
         "<leader>tr",
         "<cmd>Trouble diagnostics toggle<cr>",
-        desc = "Diagnostics (Trouble)",
+        desc = "Trouble: Toggle Diagnostics List",
       },
     },
   },

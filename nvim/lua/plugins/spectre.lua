@@ -10,12 +10,12 @@ return {
           ["run_current_replace"] = {
             map = "r",
             cmd = "<cmd>lua require('spectre.actions').run_current_replace()<CR>",
-            desc = "replace item",
+            desc = "Spectre: Replace Item",
           },
           ["run_replace"] = {
             map = "R",
             cmd = "<cmd>lua require('spectre.actions').run_replace()<CR>",
-            desc = "replace all",
+            desc = "Spectre: Replace All",
           },
         },
       })

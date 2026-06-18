@@ -11,11 +11,11 @@ return {
     },
   },
   keys = {
-    { "s", mode = { "n", "x", "o" }, function() require("flash").jump({ search = { forward = true } }) end, desc = "Flash (Forward)" },
-    { "S", mode = { "n", "x", "o" }, function() require("flash").jump({ search = { forward = false } }) end, desc = "Flash (Backward)" },
-    { "r", mode = "o", function() require("flash").remote() end, desc = "Remote Flash" },
-    { "R", mode = { "o", "x" }, function() require("flash").treesitter_search() end, desc = "Treesitter Search" },
-    { "<c-s>", mode = { "c" }, function() require("flash").toggle() end, desc = "Toggle Flash Search" },
+    { "s", mode = { "n", "x", "o" }, function() require("flash").jump({ search = { forward = true } }) end, desc = "Flash: Jump Forward" },
+    { "S", mode = { "n", "x", "o" }, function() require("flash").jump({ search = { forward = false } }) end, desc = "Flash: Jump Backward" },
+    { "r", mode = "o", function() require("flash").remote() end, desc = "Flash: Remote Jump" },
+    { "R", mode = { "o", "x" }, function() require("flash").treesitter_search() end, desc = "Flash: Treesitter Search" },
+    { "<c-s>", mode = { "c" }, function() require("flash").toggle() end, desc = "Flash: Toggle Search" },
   },
 }
 }

@@ -58,9 +58,34 @@ return {
         callback = set_minimap_hl,
       })
 
-      -- Monkey-patch window height calculations removed (height goes back to default)
+      -- Monkey-patch window height calculations for mini.map to prevent overlapping
+      -- bottom terminal splits (ToggleTerm or terminal buffer).
       local function adjust_minimap_opts(buf, opts)
-        -- Height restriction removed to fallback to default behavior.
+        if opts.relative == 'editor' and vim.api.nvim_buf_is_valid(buf) and (vim.bo[buf].filetype == 'minimap' or vim.api.nvim_buf_get_name(buf):match("minimap")) then
+          local has_tabline = vim.o.showtabline == 2 or (vim.o.showtabline == 1 and #vim.api.nvim_list_tabpages() > 1)
+          local has_statusline = vim.o.laststatus > 0
+          local start_row = has_tabline and 1 or 0
+          local max_height = vim.o.lines - vim.o.cmdheight - start_row - (has_statusline and 1 or 0)
+
+          -- Scan all windows in the current tabpage for ToggleTerm or terminal splits at the bottom
+          for _, win in ipairs(vim.api.nvim_tabpage_list_wins(0)) do
+            if vim.api.nvim_win_is_valid(win) then
+              local win_buf = vim.api.nvim_win_get_buf(win)
+              local filetype = vim.bo[win_buf].filetype
+              local buftype = vim.bo[win_buf].buftype
+              if filetype == 'toggleterm' or buftype == 'terminal' then
+                local pos = vim.api.nvim_win_get_position(win)
+                local row = pos[1] -- 0-indexed row of the window start
+                -- If this terminal window is below the start row, restrict minimap height to stop right above it
+                if row > start_row and row < (max_height + start_row) then
+                  max_height = row - start_row
+                end
+              end
+            end
+          end
+
+          opts.height = math.max(1, max_height)
+        end
       end
 
       local orig_open_win = vim.api.nvim_open_win
@@ -81,6 +106,17 @@ return {
         end
         return orig_win_set_config(win, opts)
       end
+
+      -- Refresh minimap when terminal/ToggleTerm opens or closes to update layout
+      vim.api.nvim_create_autocmd({ "BufEnter", "WinEnter", "WinClosed", "FileType" }, {
+        pattern = "*",
+        callback = function()
+          -- Use a defer to run after window layout has stabilized
+          vim.defer_fn(function()
+            pcall(minimap.refresh)
+          end, 10)
+        end,
+      })
 
       -- Automatically open MiniMap on startup/file load
       vim.api.nvim_create_autocmd({ "VimEnter", "BufWinEnter" }, {

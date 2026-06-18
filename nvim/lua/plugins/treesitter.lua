@@ -1,47 +1,29 @@
 return {
    {
       'nvim-treesitter/nvim-treesitter',
+      branch = 'main',
       lazy = false,
       build = ':TSUpdate',
       config = function()
-         require('nvim-treesitter').setup({
-            -- A list of parser names, or "all"
-            ensure_installed = (function()
-               local is_minimal = vim.fn.exists('$SSH_CONNECTION') == 1 or vim.fn.filereadable(vim.fn.stdpath('config') .. '/.minimal') == 1
-               local parsers = { "lua", "vim", "vimdoc", "markdown" }
-               if not is_minimal then
-                  vim.list_extend(parsers, { "javascript", "typescript", "tsx", "html", "css", "json" })
+         -- A list of parser names, or "all"
+         local parsers = { "lua", "vim", "vimdoc", "markdown" }
+         local is_minimal = vim.fn.exists('$SSH_CONNECTION') == 1 or vim.fn.filereadable(vim.fn.stdpath('config') .. '/.minimal') == 1
+         if not is_minimal then
+            vim.list_extend(parsers, { "javascript", "typescript", "tsx", "html", "css", "json" })
+         end
+
+         -- Install missing parsers (no-op for ones already installed)
+         require('nvim-treesitter').install(parsers)
+
+         -- Neovim core provides highlighting/indent once a parser exists for the
+         -- buffer's language; the plugin itself no longer enables these automatically.
+         vim.api.nvim_create_autocmd('FileType', {
+            callback = function(args)
+               local ok = pcall(vim.treesitter.start, args.buf)
+               if ok then
+                  vim.bo[args.buf].indentexpr = "v:lua.require'nvim-treesitter'.indentexpr()"
                end
-               return parsers
-            end)(),
-
-            -- Install parsers synchronously (only applied to `ensure_installed`)
-            sync_install = false,
-
-            -- Automatically install missing parsers when entering buffer
-            auto_install = true,
-
-            highlight = {
-               enable = true,
-               -- Setting this to true will run `:h syntax` and tree-sitter at the same time.
-               -- Set this to `true` if you depend on 'syntax' being enabled (like for indentation).
-               -- Using this option may slow down your editor, and you may see some duplicate highlights.
-               additional_vim_regex_highlighting = false,
-            },
-
-            indent = {
-               enable = true,
-            },
-
-            incremental_selection = {
-               enable = true,
-               keymaps = {
-                  init_selection = "af",
-                  node_incremental = "af",
-                  scope_incremental = "<Tab>",
-                  node_decremental = "<BS>",
-               },
-            },
+            end,
          })
       end
    }

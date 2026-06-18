@@ -10,6 +10,7 @@ export EDITOR="nvim"
 alias v="nvim"
 alias p="pnpm"
 alias pw="playwright-cli"
+alias cc="claude"
 
 # Integrate zoxide (smarter cd command)
 if command -v zoxide &> /dev/null; then
