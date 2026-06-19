@@ -2,7 +2,13 @@ return {
   {
     "folke/which-key.nvim",
     event = "VeryLazy",
-    opts = {},
+    opts = {
+      -- Default triggers are "nxso" (normal, visual, select, operator-pending).
+      -- Drop "x" so the popup doesn't show up just from entering Visual mode.
+      triggers = {
+        { "<auto>", mode = "nso" },
+      },
+    },
     keys = {
       {
         "<leader>?",

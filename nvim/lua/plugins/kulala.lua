@@ -46,6 +46,11 @@ return {
         end,
       })
     end,
-    opts = {},
+    opts = {
+      ui = {
+        -- Open the response window straight into the Verbose pane.
+        default_view = "verbose",
+      },
+    },
   },
 }

@@ -7,6 +7,13 @@ return {
       require("mini.surround").setup()
       require("mini.pairs").setup()
 
+      -- Visual mode: "s" surrounds the selection (frees "s" from flash.nvim's
+      -- visual-mode jump so it behaves like tpope/vim-surround's "S").
+      -- Must go through the command-line (:<C-u>) so the '<,'> marks are
+      -- committed before mini.surround reads them; a direct Lua callback
+      -- exits visual mode first and surrounds the wrong range.
+      vim.keymap.set("x", "s", [[:<C-u>lua require('mini.surround').add('visual')<CR>]], { silent = true, desc = "Add surrounding to selection" })
+
 
       require("mini.indentscope").setup({
         symbol = "│",

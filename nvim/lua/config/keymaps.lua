@@ -65,8 +65,9 @@ map("n", "<leader>c", "/", { desc = "Search: Find Pattern Forward" })
 -- Clear search highlights on pressing Escape in normal mode
 map("n", "<Esc>", "<cmd>nohlsearch<CR>", { silent = true, desc = "Search: Clear Highlights" })
 
--- Close Neovim completely (Quit all)
-map("n", "<leader><Esc>", "<cmd>qa<CR>", { silent = true, desc = "System: Quit Neovim" })
+-- Close Neovim completely (Quit all). Requires Esc twice so dismissing the
+-- which-key popup with a single Esc doesn't accidentally quit.
+map("n", "<leader><Esc><Esc>", "<cmd>qa<CR>", { silent = true, desc = "System: Quit Neovim" })
 
 -- Indent/outdent in visual mode keeping selection active (Tab / Shift-Tab)
 map("v", "<Tab>", ">gv", { desc = "Editor: Indent Selection" })
