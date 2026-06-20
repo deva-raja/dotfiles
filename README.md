@@ -208,7 +208,7 @@ q               ->  Close/Destroy active terminal split process (in terminal Nor
 <leader>gd      ->  Open Git CodeDiff (Inline single-window diff viewer)
 <leader>gr      ->  Open Git CodeDiff (Side-by-Side double-window diff viewer)
 <leader>gD      ->  Close CodeDiff session and close active tab
-<leader>gh      ->  View git file history / diff timeline for the current buffer
+<leader>gx      ->  View git file history / diff timeline for the current buffer
 <leader>gj      ->  Open Hunk Diff Viewer (Tab)
 ```
 

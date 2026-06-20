@@ -559,8 +559,8 @@ end
 map("n", "<leader>gd", open_codediff_inline, { desc = "Git: CodeDiff Open (Inline/Single Window)" })
 map("n", "<leader>gr", open_codediff_side, { desc = "Git: CodeDiff Open (Side-by-Side)" })
 map("n", "<leader>gD", close_codediff, { desc = "Git: CodeDiff Close Session" })
-map("n", "<leader>gh", "<cmd>CodeDiff history<CR>", { desc = "Git: CodeDiff File History" })
-map("x", "<leader>gh", ":CodeDiff history<CR>", { desc = "Git: CodeDiff File History" })
+map("n", "<leader>gx", "<cmd>CodeDiff history<CR>", { desc = "Git: CodeDiff File History" })
+map("x", "<leader>gx", ":CodeDiff history<CR>", { desc = "Git: CodeDiff File History" })
 
 -- Map 'l' and 'o' to open files/toggle folders in CodeDiff explorer/history sidebars
 vim.api.nvim_create_autocmd("FileType", {
