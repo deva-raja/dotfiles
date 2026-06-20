@@ -15,6 +15,13 @@ return {
           toggle_layout = "<D-c>", -- Command + c toggles layout
           show_help = "?",
         }
+      },
+      highlights = {
+        -- Graphite theme colors
+        line_insert = "#1f3025",      -- Muted dark green background for added lines
+        line_delete = "#372526",      -- Muted dark red background for deleted lines
+        char_insert = "#24362a",      -- Brighter green highlight for added characters
+        char_delete = "#432b2d",      -- Brighter red highlight for deleted characters
       }
     },
     config = function(_, opts)

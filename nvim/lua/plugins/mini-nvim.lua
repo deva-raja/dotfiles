@@ -4,7 +4,17 @@ return {
     version = false,
     config = function()
       require("mini.ai").setup()
-      require("mini.surround").setup()
+      require("mini.surround").setup({
+        mappings = {
+          add = "ys",            -- Add surrounding in Normal and Visual modes
+          delete = "ds",         -- Delete surrounding
+          find = "sf",           -- Find surrounding (to the right)
+          find_left = "sF",      -- Find surrounding (to the left)
+          highlight = "sh",      -- Highlight surrounding
+          replace = "cs",        -- Replace surrounding
+          update_n_lines = "sn", -- Update `n_lines`
+        },
+      })
       require("mini.pairs").setup()
 
       -- Visual mode: "s" surrounds the selection (frees "s" from flash.nvim's
@@ -38,7 +48,7 @@ return {
         window = {
           side = "right",
           width = 15,
-          winblend = 15,
+          winblend = 0, -- Set to 0 to support fully transparent background without black bars
           show_integration_count = false,
         },
       })
@@ -99,8 +109,9 @@ return {
       vim.api.nvim_open_win = function(buf, focus, opts)
         adjust_minimap_opts(buf, opts)
         local win_id = orig_open_win(buf, focus, opts)
-        if opts.relative == 'editor' and vim.api.nvim_buf_is_valid(buf) and vim.bo[buf].filetype == 'minimap' then
-          vim.wo[win_id].winhighlight = "Normal:MiniMapNormal,NormalFloat:MiniMapNormal"
+        if opts.relative == 'editor' and vim.api.nvim_buf_is_valid(buf) and (vim.bo[buf].filetype == 'minimap' or vim.api.nvim_buf_get_name(buf):match("minimap")) then
+          vim.wo[win_id].winhighlight = "Normal:MiniMapNormal,NormalFloat:MiniMapNormal,EndOfBuffer:MiniMapNormal"
+          vim.wo[win_id].winblend = 0 -- Ensure background is fully transparent
         end
         return win_id
       end
