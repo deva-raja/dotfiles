@@ -1,0 +1,13 @@
+# Hunk Configuration File
+# Persisted preferences for hunk diff viewer
+
+theme = "graphite"
+mode = "auto"
+vcs = "git"
+watch = false
+exclude_untracked = false
+line_numbers = true
+wrap_lines = false
+agent_notes = false
+transparent_background = false
+hunk_headers = false

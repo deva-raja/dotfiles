@@ -304,6 +304,7 @@ stow_package() {
     nvim) indicator="init.lua" ;;
     ghostty) indicator="config" ;;
     yazi) indicator="yazi.toml" ;;
+    hunk) indicator="config.toml" ;;
   esac
 
   local indicator_path="${target_path}/${indicator}"
@@ -371,6 +372,11 @@ if [[ "$INSTALL_PROFILE" == "full" ]]; then
   fi
 else
   info "Skipping Yazi configuration (Minimal Server profile active)."
+fi
+
+# 5.5. Hunk Config Symlinking
+if ask_yes_no "Do you want to install/symlink the Hunk configuration?"; then
+  stow_package "hunk" "$HOME/.config/hunk"
 fi
 
 # 6. Oh My Zsh & Plugin Clones
