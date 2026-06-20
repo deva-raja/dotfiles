@@ -27,8 +27,34 @@ warn() { echo -e "${YELLOW}${BOLD}[WARNING]${NC} $1"; }
 error() { echo -e "${RED}${BOLD}[ERROR]${NC} $1"; }
 prompt() { echo -e -n "${CYAN}${BOLD}[?]${NC} $1 "; }
 
+# Parse options
+NON_INTERACTIVE=false
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    -y|--yes|--non-interactive)
+      NON_INTERACTIVE=true
+      shift
+      ;;
+    -h|--help)
+      echo "Usage: $0 [options]"
+      echo "Options:"
+      echo "  -y, --yes, --non-interactive  Run in non-interactive mode (auto-accept all prompts)"
+      echo "  -h, --help                    Show this help message"
+      exit 0
+      ;;
+    *)
+      warn "Unknown option: $1"
+      shift
+      ;;
+  esac
+done
+
 # Helper to ask yes/no questions (defaulting to Yes)
 ask_yes_no() {
+  if [[ "$NON_INTERACTIVE" == "true" ]]; then
+    return 0
+  fi
   local prompt_msg="$1"
   local answer
   while true; do
@@ -89,6 +115,7 @@ unstow_package() {
     nvim) indicator="init.lua" ;;
     ghostty) indicator="config" ;;
     yazi) indicator="yazi.toml" ;;
+    hunk) indicator="config.toml" ;;
   esac
 
   local indicator_path="${target_path}/${indicator}"
@@ -137,6 +164,9 @@ unstow_package "ghostty" "$HOME/.config/ghostty"
 # 3.5. Yazi Config Removal & Backup Restore
 unstow_package "yazi" "$HOME/.config/yazi"
 
+# 3.7. Hunk Config Removal & Backup Restore
+unstow_package "hunk" "$HOME/.config/hunk"
+
 
 # 4. Oh My Zsh & Custom Plugins Removal
 if ask_yes_no "Do you want to delete Oh My Zsh and its custom plugins (~/.oh-my-zsh)?"; then
@@ -146,6 +176,28 @@ if ask_yes_no "Do you want to delete Oh My Zsh and its custom plugins (~/.oh-my-
     success "Deleted Oh My Zsh directory."
   else
     info "Oh My Zsh directory not found."
+  fi
+
+  ZSHRC="$HOME/.zshrc"
+  if [ -f "$ZSHRC" ]; then
+    info "Removing custom plugins from ~/.zshrc plugins list..."
+    python3 -c "
+import re
+path = '$ZSHRC'
+try:
+    content = open(path).read()
+    match = re.search(r'plugins=\(([^)]*)\)', content)
+    if match:
+        existing = match.group(1).split()
+        target = ['zsh-autosuggestions', 'zsh-syntax-highlighting']
+        new_list = [x for x in existing if x not in target]
+        new_plugins = 'plugins=(' + ' '.join(new_list) + ')'
+        content = re.sub(r'plugins=\([^)]*\)', new_plugins, content)
+        open(path, 'w').write(content)
+        print('SUCCESS')
+except Exception as e:
+    print('ERROR:', e)
+" | grep -q "SUCCESS" && success "Cleaned plugins array in ~/.zshrc." || warn "Failed to clean plugins array in ~/.zshrc."
   fi
 fi
 
@@ -194,10 +246,12 @@ if [ -d "$HOME/.local/lib/nodejs" ]; then
 fi
 
 # 7. Package Uninstallation
-if ask_yes_no "Do you want to uninstall system packages installed by the dotfiles installer (neovim, starship, zoxide, fzf, ripgrep, fd-find, zsh, unzip, yazi, stow)?"; then
+if ask_yes_no "Do you want to uninstall system packages installed by the dotfiles installer (neovim, starship, zoxide, fzf, ripgrep, fd-find, zsh, yazi, ghostty, stow)?"; then
   if [[ "$OS" == "Darwin" ]]; then
     info "Uninstalling dependencies via Homebrew..."
-    brew uninstall --force neovim starship zoxide fzf ripgrep fd zsh node unzip yazi ffmpeg sevenzip jq poppler imagemagick stow || true
+    brew uninstall --force neovim starship zoxide fzf ripgrep fd zsh unzip yazi ffmpeg sevenzip jq poppler imagemagick stow || true
+    info "Uninstalling Ghostty via Homebrew Cask..."
+    brew uninstall --cask --force ghostty || true
   elif [[ "$OS" == "Linux" ]]; then
     if command -v apt-get &> /dev/null; then
       info "Uninstalling dependencies via apt-get..."
@@ -224,12 +278,16 @@ echo -e "\n${RED}${BOLD}=========================================="
 echo "          Self-Deletes Dotfiles           "
 echo "=========================================="
 echo -e "${NC}"
-if ask_yes_no "Do you want to delete this dotfiles repository directory ($DOTFILES_DIR)?"; then
-  info "Self-deleting dotfiles directory..."
-  # Executing deletion in background so the script can finish gracefully
-  # or simply running rm -rf which works as the script is loaded in RAM.
-  rm -rf "$DOTFILES_DIR"
-  success "Dotfiles repository deleted! Uninstallation complete."
+if [[ "$NON_INTERACTIVE" == "true" ]]; then
+  info "Non-interactive mode active. Skipping self-deletion of dotfiles directory."
 else
-  success "Uninstallation complete. Dotfiles repository kept at ${DOTFILES_DIR}."
+  if ask_yes_no "Do you want to delete this dotfiles repository directory ($DOTFILES_DIR)?"; then
+    info "Self-deleting dotfiles directory..."
+    # Executing deletion in background so the script can finish gracefully
+    # or simply running rm -rf which works as the script is loaded in RAM.
+    rm -rf "$DOTFILES_DIR"
+    success "Dotfiles repository deleted! Uninstallation complete."
+  else
+    success "Uninstallation complete. Dotfiles repository kept at ${DOTFILES_DIR}."
+  fi
 fi

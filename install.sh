@@ -28,8 +28,50 @@ warn() { echo -e "${YELLOW}${BOLD}[WARNING]${NC} $1"; }
 error() { echo -e "${RED}${BOLD}[ERROR]${NC} $1"; }
 prompt() { echo -e -n "${CYAN}${BOLD}[?]${NC} $1 "; }
 
+# Parse options
+NON_INTERACTIVE=false
+PROFILE_OVERRIDE=""
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    -y|--yes|--non-interactive)
+      NON_INTERACTIVE=true
+      shift
+      ;;
+    -p|--profile)
+      PROFILE_OVERRIDE="$2"
+      shift 2
+      ;;
+    --full)
+      PROFILE_OVERRIDE="full"
+      shift
+      ;;
+    --minimal)
+      PROFILE_OVERRIDE="minimal"
+      shift
+      ;;
+    -h|--help)
+      echo "Usage: $0 [options]"
+      echo "Options:"
+      echo "  -y, --yes, --non-interactive  Run in non-interactive mode (auto-accept all prompts)"
+      echo "  -p, --profile <profile>       Choose profile: 'full' or 'minimal'"
+      echo "  --full                        Shortcut for --profile full"
+      echo "  --minimal                     Shortcut for --profile minimal"
+      echo "  -h, --help                    Show this help message"
+      exit 0
+      ;;
+    *)
+      warn "Unknown option: $1"
+      shift
+      ;;
+  esac
+done
+
 # Helper to ask yes/no questions (defaulting to Yes)
 ask_yes_no() {
+  if [[ "$NON_INTERACTIVE" == "true" ]]; then
+    return 0
+  fi
   local prompt_msg="$1"
   local answer
   while true; do
@@ -103,6 +145,12 @@ install_node_choice() {
     return 0
   fi
 
+  if [[ "$NON_INTERACTIVE" == "true" ]]; then
+    # Standalone User-space (choice 1)
+    install_node_linux
+    return 0
+  fi
+
   echo -e "\n[?] Node.js/NPM is required by Neovim for web language servers (JS/TS, HTML, CSS, JSON)."
   echo "    How would you like to install Node.js?"
   echo "    1) Standalone User-space (Fastest, zero system bloat, installs in ~/.local/lib/nodejs) [Recommended]"
@@ -167,14 +215,24 @@ fi
 
 # Ask for installation profile
 INSTALL_PROFILE="full"
-if [[ "$HEADLESS" == "true" ]]; then
-  info "Detected headless environment (remote server/SSH)."
-  if ask_yes_no "Do you want to use the Minimal Server profile (highly recommended for remote servers)?"; then
-    INSTALL_PROFILE="minimal"
+if [[ -n "$PROFILE_OVERRIDE" ]]; then
+  if [[ "$PROFILE_OVERRIDE" == "minimal" || "$PROFILE_OVERRIDE" == "full" ]]; then
+    INSTALL_PROFILE="$PROFILE_OVERRIDE"
+  else
+    warn "Invalid profile '$PROFILE_OVERRIDE'. Defaulting based on environment."
   fi
-else
-  if ! ask_yes_no "Do you want to install the Full Desktop profile (choose No for Minimal Server)?"; then
-    INSTALL_PROFILE="minimal"
+fi
+
+if [[ -z "$PROFILE_OVERRIDE" ]]; then
+  if [[ "$HEADLESS" == "true" ]]; then
+    info "Detected headless environment (remote server/SSH)."
+    if ask_yes_no "Do you want to use the Minimal Server profile (highly recommended for remote servers)?"; then
+      INSTALL_PROFILE="minimal"
+    fi
+  else
+    if ! ask_yes_no "Do you want to install the Full Desktop profile (choose No for Minimal Server)?"; then
+      INSTALL_PROFILE="minimal"
+    fi
   fi
 fi
 

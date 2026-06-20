@@ -6,19 +6,26 @@ A consolidated, premium, and fully automated configuration for your CLI environm
 
 ---
 
-## ⚡ One-Shot Installation
+## One-Shot Installation
 
-Copy and run this single command to pull the repo and start the installer:
+Copy and run this single command to pull the repo and start the interactive installer:
 
 ```bash
 git clone https://github.com/deva-raja/dotfiles.git ~/dotfiles && cd ~/dotfiles && ./install.sh
 ```
 
+For a fully automated **Full Desktop** installation without prompts:
+
+```bash
+git clone https://github.com/deva-raja/dotfiles.git ~/dotfiles && cd ~/dotfiles && ./install.sh --full -y
+```
+
 ---
 
-## 🗺️ Table of Contents
+## Table of Contents
 
 * [⚙️ Installation Profiles](#installation-profiles)
+* [🔧 Command-Line Options](#command-line-options)
 * [📦 Core CLI Tools Overview](#core-cli-tools-overview)
 * [📝 Neovim Plugins Setup](#neovim-plugins-setup)
 * [🐚 Zsh Shell Customizations](#zsh-shell-customizations)
@@ -36,7 +43,7 @@ git clone https://github.com/deva-raja/dotfiles.git ~/dotfiles && cd ~/dotfiles 
 
 ---
 
-## ⚙️ Installation Profiles
+## Installation Profiles
 
 Upon running the installer, it will auto-detect your environment and prompt you to choose an installation profile:
 
@@ -56,9 +63,30 @@ If Node.js is missing on your host machine, you will be prompted to choose an in
 
 ---
 
+## Command-Line Options
+
+Both scripts (`install.sh` and `uninstall.sh`) can be customized or run non-interactively. Passing options is entirely optional; running either script without options will start the default interactive prompts.
+
+### Installer Options (`install.sh`)
+
+| Option | Description |
+|---|---|
+| `-y`, `--yes`, `--non-interactive` | Auto-accept all prompts (headless environments default to `minimal`, others default to `full`). |
+| `-p`, `--profile <profile>` | Select the profile (`full` or `minimal`). |
+| `--full` | Shortcut for `--profile full`. |
+| `--minimal` | Shortcut for `--profile minimal`. |
+| `-h`, `--help` | Show the help menu. |
+
+### Uninstaller Options (`uninstall.sh`)
+
+| Option | Description |
+|---|---|
+| `-y`, `--yes`, `--non-interactive` | Auto-accept all prompts, running the uninstallation non-interactively. *(Note: For safety, repository self-destruction is skipped).* |
+| `-h`, `--help` | Show the help menu. |
+
 ---
 
-## 📦 Core CLI Tools Overview
+## Core CLI Tools Overview
 
 The installation script automatically installs and configures the following developer utilities:
 
@@ -72,7 +100,7 @@ The installation script automatically installs and configures the following deve
 
 ---
 
-## 📝 Neovim Plugins Setup
+## Neovim Plugins Setup
 
 Your Neovim configurations are split into structured, self-contained plugins under `lua/plugins/`:
 
@@ -111,7 +139,7 @@ Your Neovim configurations are split into structured, self-contained plugins und
 
 ---
 
-## 🐚 Zsh Shell Customizations
+## Zsh Shell Customizations
 
 Sourced automatically via `zsh/custom.zsh` into your `~/.zshrc`:
 * **Starship Prompt:** Beautiful, rust-powered shell headers showing branch status and language versions.
@@ -127,7 +155,7 @@ Sourced automatically via `zsh/custom.zsh` into your `~/.zshrc`:
 
 ---
 
-## 💻 Ghostty Configs
+## Ghostty Configs
 
 Sets up a clean developer layout:
 * **Background Opacity:** `0.90`
@@ -135,7 +163,7 @@ Sets up a clean developer layout:
 
 ---
 
-## 🗂️ Yazi File Manager
+## Yazi File Manager
 
 Your Yazi configuration is integrated with your terminal environment to support quick project navigations:
 * **Folder-Specific Sorting Hook:** Subscribes to directory changes natively. When entering `~/Downloads` (or any subfolder), it dynamically switches the sorting to **birth time reverse (newest first, no folder-first grouping)** so downloaded items appear at the very top. Navigating away instantly restores default alphabetical sorting.
@@ -145,7 +173,7 @@ Your Yazi configuration is integrated with your terminal environment to support 
 
 ---
 
-## ⌨️ Keybindings & Shortcuts Cheatsheet
+## Keybindings & Shortcuts Cheatsheet
 
 ### Core & Text Editing
 ```text
@@ -254,13 +282,15 @@ q               ->  Close Yazi (returning to shell)
 
 ---
 
-## 🗑️ Reset & Uninstallation
+## Reset & Uninstallation
 
 If you ever want to revert all changes, restore your original settings from backups, and wipe caches, run the uninstaller script:
 
 ```bash
 ./uninstall.sh
 ```
+
+*(For non-interactive uninstallation, see the [Command-Line Options](#command-line-options) section).*
 
 This script will:
 * Remove config symlinks (Neovim, Ghostty, Yazi) and **restore your original configurations** from backups (`.bak.*`).
