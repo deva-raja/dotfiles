@@ -13,17 +13,36 @@ return {
          end
 
          -- Install missing parsers (no-op for ones already installed)
-         require('nvim-treesitter').install(parsers)
-
-         -- Auto-install parsers for languages that aren't pre-installed
-         require('nvim-treesitter.configs').setup({
-            auto_install = not is_minimal,
-         })
+         local ts = require('nvim-treesitter')
+         local installed = ts.get_installed()
+         local to_install = {}
+         for _, p in ipairs(parsers) do
+            if not vim.tbl_contains(installed, p) then
+               table.insert(to_install, p)
+            end
+         end
+         if #to_install > 0 then
+            ts.install(to_install)
+         end
 
          -- Neovim core provides highlighting/indent once a parser exists for the
          -- buffer's language; the plugin itself no longer enables these automatically.
          vim.api.nvim_create_autocmd('FileType', {
             callback = function(args)
+               local filetype = args.match
+               local lang = vim.treesitter.language.get_lang(filetype) or filetype
+               if lang and not is_minimal then
+                  local available_langs = ts.get_available()
+                  if vim.tbl_contains(available_langs, lang) then
+                     local installed_langs = ts.get_installed()
+                     if not vim.tbl_contains(installed_langs, lang) then
+                        pcall(function()
+                           ts.install(lang):wait()
+                        end)
+                     end
+                  end
+               end
+
                local ok = pcall(vim.treesitter.start, args.buf)
                if ok then
                   vim.bo[args.buf].indentexpr = "v:lua.require'nvim-treesitter'.indentexpr()"

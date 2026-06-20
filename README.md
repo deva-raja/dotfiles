@@ -175,8 +175,8 @@ Cmd + \         ->  Toggle Neo-tree sidebar (VS Code file explorer style)
 <leader>l       ->  Focus window split on the Right
 <leader>k       ->  Focus window split on the Top
 <leader>j       ->  Focus window split on the Bottom
-<leader>gv      ->  Create a vertical window split
-<leader>gh      ->  Create a horizontal window split
+<leader>fv      ->  Create a vertical window split
+<leader>fh      ->  Create a horizontal window split
 <leader>i       ->  Open Telescope file finder (uses Git files if inside a repo)
 <leader>s       ->  Open Telescope live grep (global quick regex search across all files)
 <leader>n       ->  Open Telescope buffer list (switch between open buffers)
@@ -208,7 +208,8 @@ q               ->  Close/Destroy active terminal split process (in terminal Nor
 <leader>gd      ->  Open Git CodeDiff (Inline single-window diff viewer)
 <leader>gr      ->  Open Git CodeDiff (Side-by-Side double-window diff viewer)
 <leader>gD      ->  Close CodeDiff session and close active tab
-<leader>ghs     ->  View git file history / diff timeline for the current buffer
+<leader>gh      ->  View git file history / diff timeline for the current buffer
+<leader>gj      ->  Open Hunk Diff Viewer (Tab)
 ```
 
 ### LSP & Code Intelligence

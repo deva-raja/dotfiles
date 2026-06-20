@@ -141,8 +141,8 @@ map("n", "<leader>j", "<C-w>j", { desc = "Window: Focus Bottom Window" })
 -- 3. SPLIT MANAGEMENT
 -- ==========================================
 
-map("n", "<leader>gv", "<cmd>vsplit<CR>", { desc = "Window: Split Vertically" })
-map("n", "<leader>gh", "<cmd>split<CR>", { desc = "Window: Split Horizontally" })
+map("n", "<leader>fv", "<cmd>vsplit<CR>", { desc = "Window: Split Vertically" })
+map("n", "<leader>fh", "<cmd>split<CR>", { desc = "Window: Split Horizontally" })
 
 
 -- ==========================================
@@ -168,7 +168,7 @@ map("n", "<leader>i", function()
     require("telescope.builtin").find_files()
   end
 end, { desc = "Files: Find File (Git/Workspace)" })
-map("n", "<leader>s", "<cmd>Telescope live_grep<CR>", { desc = "Search: Live Grep (Workspace)" })
+map("n", "<leader>fs", "<cmd>Telescope live_grep<CR>", { desc = "Search: Live Grep (Workspace)" })
 map("n", "<leader>;", "<cmd>Telescope keymaps<CR>", { desc = "Command Palette" })
 map("n", "<leader>n", "<cmd>Telescope buffers<CR>", { desc = "Buffer: List Open Buffers" })
 map("n", "<leader>?", "<cmd>Telescope keymaps<CR>", { desc = "Help: Keymaps Search" })
@@ -512,6 +512,24 @@ map("n", "<leader>dl", function()
   lazydocker:toggle()
 end, { desc = "Docker: Toggle LazyDocker Window" })
 
+local hunk = nil
+map("n", "<leader>gj", function()
+  if not hunk then
+    local Terminal = require("toggleterm.terminal").Terminal
+    hunk = Terminal:new({
+      cmd = "hunk diff",
+      dir = "git_dir",
+      direction = "tab",
+      on_open = function(term)
+        vim.cmd("startinsert!")
+        -- Prevent standard exit terminal mapping from overriding Esc inside hunk
+        vim.api.nvim_buf_set_keymap(term.bufnr, "t", "<Esc>", "<Esc>", { noremap = true, silent = true })
+      end,
+    })
+  end
+  hunk:toggle()
+end, { desc = "Git: Open Hunk Diff Viewer (Tab)" })
+
 map("n", "<leader>gg", "<cmd>Neogit<CR>", { desc = "Git: Toggle Neogit Status" })
 
 -- Open CodeDiff in inline mode
@@ -541,8 +559,8 @@ end
 map("n", "<leader>gd", open_codediff_inline, { desc = "Git: CodeDiff Open (Inline/Single Window)" })
 map("n", "<leader>gr", open_codediff_side, { desc = "Git: CodeDiff Open (Side-by-Side)" })
 map("n", "<leader>gD", close_codediff, { desc = "Git: CodeDiff Close Session" })
-map("n", "<leader>ghs", "<cmd>CodeDiff history<CR>", { desc = "Git: CodeDiff File History" })
-map("x", "<leader>ghs", ":CodeDiff history<CR>", { desc = "Git: CodeDiff File History" })
+map("n", "<leader>gh", "<cmd>CodeDiff history<CR>", { desc = "Git: CodeDiff File History" })
+map("x", "<leader>gh", ":CodeDiff history<CR>", { desc = "Git: CodeDiff File History" })
 
 -- Map 'l' and 'o' to open files/toggle folders in CodeDiff explorer/history sidebars
 vim.api.nvim_create_autocmd("FileType", {
