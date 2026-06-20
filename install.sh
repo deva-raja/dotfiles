@@ -199,11 +199,11 @@ if ask_yes_no "Do you want to check and install missing dependencies?"; then
 
     # Install packages
     if [[ "$INSTALL_PROFILE" == "minimal" ]]; then
-      info "Installing dependencies via Homebrew (neovim, starship, zoxide, fzf, ripgrep, fd, unzip)..."
-      brew install neovim starship zoxide fzf ripgrep fd unzip
+      info "Installing dependencies via Homebrew (neovim, starship, zoxide, fzf, ripgrep, fd, unzip, stow)..."
+      brew install neovim starship zoxide fzf ripgrep fd unzip stow
     else
-      info "Installing dependencies via Homebrew (neovim, starship, zoxide, fzf, ripgrep, fd, zsh, node, unzip)..."
-      brew install neovim starship zoxide fzf ripgrep fd zsh node unzip
+      info "Installing dependencies via Homebrew (neovim, starship, zoxide, fzf, ripgrep, fd, zsh, node, unzip, stow)..."
+      brew install neovim starship zoxide fzf ripgrep fd zsh node unzip stow
       
       # Install Ghostty on macOS if not installed
       if ! command -v ghostty &> /dev/null && ! brew list --cask ghostty &> /dev/null; then
@@ -222,9 +222,9 @@ if ask_yes_no "Do you want to check and install missing dependencies?"; then
       info "Installing dependencies via apt-get..."
       sudo apt-get update
       if [[ "$INSTALL_PROFILE" == "minimal" ]]; then
-        sudo apt-get install -y neovim starship zoxide fzf ripgrep fd-find curl git build-essential unzip
+        sudo apt-get install -y neovim starship zoxide fzf ripgrep fd-find curl git build-essential unzip stow
       else
-        sudo apt-get install -y neovim starship zoxide fzf ripgrep fd-find zsh curl git build-essential unzip python3 python3-pip python3-venv
+        sudo apt-get install -y neovim starship zoxide fzf ripgrep fd-find zsh curl git build-essential unzip python3 python3-pip python3-venv stow
         
         if [[ "$INSTALL_YAZI" == "true" ]]; then
           info "Installing Yazi dependencies via apt-get..."
@@ -242,9 +242,9 @@ if ask_yes_no "Do you want to check and install missing dependencies?"; then
     elif command -v pacman &> /dev/null; then
       info "Installing dependencies via pacman..."
       if [[ "$INSTALL_PROFILE" == "minimal" ]]; then
-        sudo pacman -Syu --needed neovim starship zoxide fzf ripgrep fd curl git base-devel unzip
+        sudo pacman -Syu --needed neovim starship zoxide fzf ripgrep fd curl git base-devel unzip stow
       else
-        sudo pacman -Syu --needed neovim starship zoxide fzf ripgrep fd zsh curl git base-devel unzip python python-pip
+        sudo pacman -Syu --needed neovim starship zoxide fzf ripgrep fd zsh curl git base-devel unzip python python-pip stow
         
         if [[ "$INSTALL_YAZI" == "true" ]]; then
           info "Installing Yazi and dependencies via pacman..."
@@ -254,9 +254,9 @@ if ask_yes_no "Do you want to check and install missing dependencies?"; then
     elif command -v dnf &> /dev/null; then
       info "Installing dependencies via dnf..."
       if [[ "$INSTALL_PROFILE" == "minimal" ]]; then
-        sudo dnf install -y neovim starship zoxide fzf ripgrep fd-find curl git make gcc gcc-c++ unzip
+        sudo dnf install -y neovim starship zoxide fzf ripgrep fd-find curl git make gcc gcc-c++ unzip stow
       else
-        sudo dnf install -y neovim starship zoxide fzf ripgrep fd-find zsh curl git make gcc gcc-c++ unzip python3-pip
+        sudo dnf install -y neovim starship zoxide fzf ripgrep fd-find zsh curl git make gcc gcc-c++ unzip python3-pip stow
         
         if [[ "$INSTALL_YAZI" == "true" ]]; then
           info "Installing Yazi and dependencies via dnf..."
@@ -269,7 +269,7 @@ if ask_yes_no "Do you want to check and install missing dependencies?"; then
       fi
     else
       warn "No supported package manager found. Please install the following tools manually:"
-      warn "neovim, starship, zoxide, fzf, ripgrep, fd, curl, git, make, gcc, unzip"
+      warn "neovim, starship, zoxide, fzf, ripgrep, fd, curl, git, make, gcc, unzip, stow"
     fi
 
     # Install/configure Node.js
@@ -287,32 +287,64 @@ else
   info "Skipping dependency installation."
 fi
 
-# 3. Neovim Config Symlinking
-if ask_yes_no "Do you want to install/symlink the Neovim configuration?"; then
-  NVIM_CONFIG_DIR="$HOME/.config/nvim"
-  if [ -d "$NVIM_CONFIG_DIR" ] || [ -f "$NVIM_CONFIG_DIR" ] || [ -L "$NVIM_CONFIG_DIR" ]; then
-    # If it is a symlink pointing to our repo already, do nothing
-    if [ -L "$NVIM_CONFIG_DIR" ] && [ "$(readlink "$NVIM_CONFIG_DIR")" -ef "$DOTFILES_DIR/nvim" ]; then
-      success "Neovim configuration is already correctly symlinked!"
-    else
-      warn "Existing Neovim directory found at ${NVIM_CONFIG_DIR}."
-      if ask_yes_no "Back up current configuration and replace it?"; then
-        BACKUP_PATH="${NVIM_CONFIG_DIR}${BACKUP_SUFFIX}"
-        mv "$NVIM_CONFIG_DIR" "$BACKUP_PATH"
-        info "Backed up existing config to ${BACKUP_PATH}"
-        ln -sfn "$DOTFILES_DIR/nvim" "$NVIM_CONFIG_DIR"
-        success "Symlinked Neovim configuration!"
-      else
-        info "Skipping Neovim symlink."
-      fi
-    fi
-  else
-    mkdir -p "$HOME/.config"
-    ln -sfn "$DOTFILES_DIR/nvim" "$NVIM_CONFIG_DIR"
-    success "Symlinked Neovim configuration!"
+# Helper to back up conflicting configurations and run stow
+stow_package() {
+  local package="$1"
+  local target_path="$2"
+
+  # Check if stow command is available
+  if ! command -v stow &> /dev/null; then
+    error "stow command not found! Please install GNU Stow, or allow the script to install dependencies."
+    return 1
   fi
 
+  # Determine indicator file to check if already symlinked
+  local indicator=""
+  case "$package" in
+    nvim) indicator="init.lua" ;;
+    ghostty) indicator="config" ;;
+    yazi) indicator="yazi.toml" ;;
+  esac
+
+  local indicator_path="${target_path}/${indicator}"
+
+  if [ -d "$target_path" ] || [ -f "$target_path" ] || [ -L "$target_path" ]; then
+    # Check if already correctly symlinked via indicator file
+    if [ -L "$indicator_path" ] && [ "$(readlink "$indicator_path")" -ef "$DOTFILES_DIR/$package/$indicator" ]; then
+      success "$package configuration is already correctly symlinked!"
+      return 0
+    else
+      warn "Existing $package directory/file found at $target_path."
+      if ask_yes_no "Back up current configuration and replace it with dotfiles version?"; then
+        local backup_path="${target_path}${BACKUP_SUFFIX}"
+        mv "$target_path" "$backup_path"
+        info "Backed up existing config to $backup_path"
+      else
+        info "Skipping $package configuration."
+        return 1
+      fi
+    fi
+  fi
+
+  # Ensure the target directory exists
+  mkdir -p "$target_path"
+
+  # Run Stow to symlink the package contents to the target directory
+  if stow -d "$DOTFILES_DIR" -t "$target_path" "$package"; then
+    success "Symlinked $package configuration using Stow!"
+    return 0
+  else
+    error "Failed to symlink $package using Stow."
+    return 1
+  fi
+}
+
+# 3. Neovim Config Symlinking
+if ask_yes_no "Do you want to install/symlink the Neovim configuration?"; then
+  stow_package "nvim" "$HOME/.config/nvim"
+  
   # Handle minimal profile flag file
+  NVIM_CONFIG_DIR="$HOME/.config/nvim"
   if [ -d "$NVIM_CONFIG_DIR" ] || [ -L "$NVIM_CONFIG_DIR" ]; then
     if [[ "$INSTALL_PROFILE" == "minimal" ]]; then
       touch "$NVIM_CONFIG_DIR/.minimal"
@@ -326,27 +358,7 @@ fi
 # 4. Ghostty Config Symlinking
 if [[ "$INSTALL_PROFILE" == "full" ]]; then
   if ask_yes_no "Do you want to install/symlink the Ghostty configuration?"; then
-    GHOSTTY_CONFIG_DIR="$HOME/.config/ghostty"
-    if [ -d "$GHOSTTY_CONFIG_DIR" ] || [ -f "$GHOSTTY_CONFIG_DIR" ] || [ -L "$GHOSTTY_CONFIG_DIR" ]; then
-      if [ -L "$GHOSTTY_CONFIG_DIR" ] && [ "$(readlink "$GHOSTTY_CONFIG_DIR")" -ef "$DOTFILES_DIR/ghostty" ]; then
-        success "Ghostty configuration is already correctly symlinked!"
-      else
-        warn "Existing Ghostty directory found at ${GHOSTTY_CONFIG_DIR}."
-        if ask_yes_no "Back up current configuration and replace it?"; then
-          BACKUP_PATH="${GHOSTTY_CONFIG_DIR}${BACKUP_SUFFIX}"
-          mv "$GHOSTTY_CONFIG_DIR" "$BACKUP_PATH"
-          info "Backed up existing config to ${BACKUP_PATH}"
-          ln -sfn "$DOTFILES_DIR/ghostty" "$GHOSTTY_CONFIG_DIR"
-          success "Symlinked Ghostty configuration!"
-        else
-          info "Skipping Ghostty symlink."
-        fi
-      fi
-    else
-      mkdir -p "$HOME/.config"
-      ln -sfn "$DOTFILES_DIR/ghostty" "$GHOSTTY_CONFIG_DIR"
-      success "Symlinked Ghostty configuration!"
-    fi
+    stow_package "ghostty" "$HOME/.config/ghostty"
   fi
 else
   info "Skipping Ghostty configuration (Minimal Server profile active)."
@@ -355,27 +367,7 @@ fi
 # 5. Yazi Config Symlinking
 if [[ "$INSTALL_PROFILE" == "full" ]]; then
   if ask_yes_no "Do you want to install/symlink the Yazi configuration?"; then
-    YAZI_CONFIG_DIR="$HOME/.config/yazi"
-    if [ -d "$YAZI_CONFIG_DIR" ] || [ -f "$YAZI_CONFIG_DIR" ] || [ -L "$YAZI_CONFIG_DIR" ]; then
-      if [ -L "$YAZI_CONFIG_DIR" ] && [ "$(readlink "$YAZI_CONFIG_DIR")" -ef "$DOTFILES_DIR/yazi" ]; then
-        success "Yazi configuration is already correctly symlinked!"
-      else
-        warn "Existing Yazi directory found at ${YAZI_CONFIG_DIR}."
-        if ask_yes_no "Back up current configuration and replace it?"; then
-          BACKUP_PATH="${YAZI_CONFIG_DIR}${BACKUP_SUFFIX}"
-          mv "$YAZI_CONFIG_DIR" "$BACKUP_PATH"
-          info "Backed up existing config to ${BACKUP_PATH}"
-          ln -sfn "$DOTFILES_DIR/yazi" "$YAZI_CONFIG_DIR"
-          success "Symlinked Yazi configuration!"
-        else
-          info "Skipping Yazi symlink."
-        fi
-      fi
-    else
-      mkdir -p "$HOME/.config"
-      ln -sfn "$DOTFILES_DIR/yazi" "$YAZI_CONFIG_DIR"
-      success "Symlinked Yazi configuration!"
-    fi
+    stow_package "yazi" "$HOME/.config/yazi"
   fi
 else
   info "Skipping Yazi configuration (Minimal Server profile active)."

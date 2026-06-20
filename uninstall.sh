@@ -78,23 +78,49 @@ fi
 # Detect Operating System
 OS="$(uname -s)"
 
-# 1. Neovim Config Removal & Backup Restore
-NVIM_CONFIG_DIR="$HOME/.config/nvim"
-rm -f "$NVIM_CONFIG_DIR/.minimal" 2>/dev/null || true
-rm -f "$DOTFILES_DIR/nvim/.minimal" 2>/dev/null || true
+# Helper to unstow and restore backups
+unstow_package() {
+  local package="$1"
+  local target_path="$2"
 
-if [ -L "$NVIM_CONFIG_DIR" ]; then
-  info "Removing Neovim configuration symlink..."
-  rm "$NVIM_CONFIG_DIR"
-  success "Removed Neovim symlink."
-  restore_backup "$NVIM_CONFIG_DIR"
-elif [ -d "$NVIM_CONFIG_DIR" ]; then
-  if ask_yes_no "Found a non-symlink Neovim config folder at ${NVIM_CONFIG_DIR}. Delete it?"; then
-    rm -rf "$NVIM_CONFIG_DIR"
-    success "Deleted Neovim config folder."
-    restore_backup "$NVIM_CONFIG_DIR"
+  # Determine indicator file to check if already symlinked
+  local indicator=""
+  case "$package" in
+    nvim) indicator="init.lua" ;;
+    ghostty) indicator="config" ;;
+    yazi) indicator="yazi.toml" ;;
+  esac
+
+  local indicator_path="${target_path}/${indicator}"
+
+  if [ -L "$indicator_path" ] && [ "$(readlink "$indicator_path")" -ef "$DOTFILES_DIR/$package/$indicator" ]; then
+    info "Removing $package configuration symlink using Stow..."
+    if command -v stow &> /dev/null; then
+      stow -D -d "$DOTFILES_DIR" -t "$target_path" "$package"
+      success "Unstowed $package configuration."
+    else
+      rm -f "$target_path/$indicator"
+      success "Removed $package symlink manually."
+    fi
+
+    # If the directory is now empty, remove it so we can restore the backup
+    if [ -d "$target_path" ] && [ -z "$(ls -A "$target_path" 2>/dev/null)" ]; then
+      rmdir "$target_path"
+    fi
+    restore_backup "$target_path"
+  elif [ -d "$target_path" ] || [ -f "$target_path" ]; then
+    if ask_yes_no "Found a non-symlink $package config folder at $target_path. Delete it?"; then
+      rm -rf "$target_path"
+      success "Deleted $package config folder."
+      restore_backup "$target_path"
+    fi
   fi
-fi
+}
+
+# 1. Neovim Config Removal & Backup Restore
+rm -f "$HOME/.config/nvim/.minimal" 2>/dev/null || true
+rm -f "$DOTFILES_DIR/nvim/.minimal" 2>/dev/null || true
+unstow_package "nvim" "$HOME/.config/nvim"
 
 # 2. Neovim Plugins, Cache, and State Clean up (Crucial for fresh start)
 if ask_yes_no "Delete Neovim local package cache and state directories (highly recommended to start fresh)?"; then
@@ -106,34 +132,10 @@ if ask_yes_no "Delete Neovim local package cache and state directories (highly r
 fi
 
 # 3. Ghostty Config Removal & Backup Restore
-GHOSTTY_CONFIG_DIR="$HOME/.config/ghostty"
-if [ -L "$GHOSTTY_CONFIG_DIR" ]; then
-  info "Removing Ghostty configuration symlink..."
-  rm "$GHOSTTY_CONFIG_DIR"
-  success "Removed Ghostty symlink."
-  restore_backup "$GHOSTTY_CONFIG_DIR"
-elif [ -d "$GHOSTTY_CONFIG_DIR" ]; then
-  if ask_yes_no "Found a non-symlink Ghostty config folder at ${GHOSTTY_CONFIG_DIR}. Delete it?"; then
-    rm -rf "$GHOSTTY_CONFIG_DIR"
-    success "Deleted Ghostty config folder."
-    restore_backup "$GHOSTTY_CONFIG_DIR"
-  fi
-fi
+unstow_package "ghostty" "$HOME/.config/ghostty"
 
 # 3.5. Yazi Config Removal & Backup Restore
-YAZI_CONFIG_DIR="$HOME/.config/yazi"
-if [ -L "$YAZI_CONFIG_DIR" ]; then
-  info "Removing Yazi configuration symlink..."
-  rm "$YAZI_CONFIG_DIR"
-  success "Removed Yazi symlink."
-  restore_backup "$YAZI_CONFIG_DIR"
-elif [ -d "$YAZI_CONFIG_DIR" ]; then
-  if ask_yes_no "Found a non-symlink Yazi config folder at ${YAZI_CONFIG_DIR}. Delete it?"; then
-    rm -rf "$YAZI_CONFIG_DIR"
-    success "Deleted Yazi config folder."
-    restore_backup "$YAZI_CONFIG_DIR"
-  fi
-fi
+unstow_package "yazi" "$HOME/.config/yazi"
 
 
 # 4. Oh My Zsh & Custom Plugins Removal
@@ -192,24 +194,24 @@ if [ -d "$HOME/.local/lib/nodejs" ]; then
 fi
 
 # 7. Package Uninstallation
-if ask_yes_no "Do you want to uninstall system packages installed by the dotfiles installer (neovim, starship, zoxide, fzf, ripgrep, fd-find, zsh, unzip, yazi)?"; then
+if ask_yes_no "Do you want to uninstall system packages installed by the dotfiles installer (neovim, starship, zoxide, fzf, ripgrep, fd-find, zsh, unzip, yazi, stow)?"; then
   if [[ "$OS" == "Darwin" ]]; then
     info "Uninstalling dependencies via Homebrew..."
-    brew uninstall --force neovim starship zoxide fzf ripgrep fd zsh node unzip yazi ffmpeg sevenzip jq poppler imagemagick || true
+    brew uninstall --force neovim starship zoxide fzf ripgrep fd zsh node unzip yazi ffmpeg sevenzip jq poppler imagemagick stow || true
   elif [[ "$OS" == "Linux" ]]; then
     if command -v apt-get &> /dev/null; then
       info "Uninstalling dependencies via apt-get..."
-      sudo apt-get purge -y neovim starship zoxide fzf ripgrep fd-find zsh unzip ffmpeg jq poppler-utils imagemagick p7zip-full || true
+      sudo apt-get purge -y neovim starship zoxide fzf ripgrep fd-find zsh unzip ffmpeg jq poppler-utils imagemagick p7zip-full stow || true
       if command -v snap &> /dev/null; then
         sudo snap remove yazi || true
       fi
       sudo apt-get autoremove -y || true
     elif command -v pacman &> /dev/null; then
       info "Uninstalling dependencies via pacman..."
-      sudo pacman -Rns --noconfirm neovim starship zoxide fzf ripgrep fd zsh unzip yazi ffmpeg 7zip jq poppler resvg imagemagick || true
+      sudo pacman -Rns --noconfirm neovim starship zoxide fzf ripgrep fd zsh unzip yazi ffmpeg 7zip jq poppler resvg imagemagick stow || true
     elif command -v dnf &> /dev/null; then
       info "Uninstalling dependencies via dnf..."
-      sudo dnf remove -y neovim starship zoxide fzf ripgrep fd-find zsh unzip yazi ffmpeg 7zip jq poppler imagemagick || true
+      sudo dnf remove -y neovim starship zoxide fzf ripgrep fd-find zsh unzip yazi ffmpeg 7zip jq poppler imagemagick stow || true
     else
       warn "No supported package manager found to uninstall dependencies."
     fi
