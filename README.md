@@ -20,12 +20,19 @@ For a fully automated **Full Desktop** installation without prompts:
 git clone https://github.com/deva-raja/dotfiles.git ~/dotfiles && cd ~/dotfiles && ./install.sh --full -y
 ```
 
+To test and run the configuration in an isolated **Docker Sandbox** (without modifying your host):
+
+```bash
+git clone https://github.com/deva-raja/dotfiles.git ~/dotfiles && cd ~/dotfiles && make docker-sandbox
+```
+
 ---
 
 ## Table of Contents
 
 * [⚙️ Installation Profiles](#installation-profiles)
 * [🔧 Command-Line Options](#command-line-options)
+* [🛠️ Development & Sandbox Tools](#development--sandbox-tools)
 * [📦 Core CLI Tools Overview](#core-cli-tools-overview)
 * [📝 Neovim Plugins Setup](#neovim-plugins-setup)
 * [🐚 Zsh Shell Customizations](#zsh-shell-customizations)
@@ -39,7 +46,6 @@ git clone https://github.com/deva-raja/dotfiles.git ~/dotfiles && cd ~/dotfiles 
     * [LSP & Code Intelligence](#lsp--code-intelligence)
     * [Other Utilities (Bookmarks, Minimap, Zen, Markdown)](#other-utilities-bookmarks-minimap-zen-markdown)
     * [Yazi File Manager Shortcuts](#yazi-file-manager-shortcuts)
-* [🛠️ Development & Sandbox Tools](#development--sandbox-tools)
 * [🗑️ Reset & Uninstallation](#reset--uninstallation)
 
 ---
@@ -84,6 +90,54 @@ Both scripts (`install.sh` and `uninstall.sh`) can be customized or run non-inte
 |---|---|
 | `-y`, `--yes`, `--non-interactive` | Auto-accept all prompts, running the uninstallation non-interactively. *(Note: For safety, repository self-destruction is skipped).* |
 | `-h`, `--help` | Show the help menu. |
+
+---
+
+## Development & Sandbox Tools
+
+This repository features a **Makefile** that serves as a task runner (similar to `package.json` scripts in Node.js) to automate dotfiles installation, uninstallation, and sandbox testing.
+
+### 🛠️ Makefile Commands
+
+To see all available commands, run:
+```bash
+make
+```
+
+Available targets:
+* **`make install`**: Run `./install.sh` to install configurations on your host.
+* **`make uninstall`**: Run `./uninstall.sh` to uninstall configurations and restore original backups on your host.
+* **`make docker-build`**: Build the Docker sandbox image.
+* **`make docker-run`**: Launch the Docker sandbox container interactively.
+* **`make docker-sandbox`**: Clean-build and run the Docker sandbox (optionally mounting a host path as a workspace).
+* **`make docker-clean`**: Clean up and remove the Docker sandbox image.
+
+### 🌌 Isolated Sandbox Environment
+
+If you want to preview or test changes to your dotfiles, or use your Neovim/Yazi configs to edit files on your host machine without modifying your host system, you can run them in an Ubuntu container using Docker.
+
+Make sure Docker is running on your host machine.
+
+#### 1. Running in Isolated Mode
+To launch a clean, fully isolated container with no access to host directories:
+```bash
+make docker-sandbox
+```
+
+#### 2. Running in Workspace Mode (Mount Host Folders)
+To use the sandbox environment to edit files on your host machine, specify the `path` parameter. This will bind-mount your host directory to `/workspace` inside the container:
+```bash
+# Mount the current directory
+make docker-sandbox path=.
+
+# Mount a specific project directory
+make docker-sandbox path=~/projects/my-app
+```
+
+Once inside the sandbox shell, you can simply run:
+* **`v` or `nvim`** to start editing your mounted host files with Neovim.
+* **`y` or `yazi`** to browse your mounted files in the Yazi terminal file manager.
+* **`exit`** to close and destroy the container.
 
 ---
 
@@ -280,54 +334,6 @@ t               ->  Create a new tab
 [ / ]           ->  Switch to the previous / next tab
 q               ->  Close Yazi (returning to shell)
 ```
-
----
-
-## Development & Sandbox Tools
-
-This repository features a **Makefile** that serves as a task runner (similar to `package.json` scripts in Node.js) to automate dotfiles installation, uninstallation, and sandbox testing.
-
-### 🛠️ Makefile Commands
-
-To see all available commands, run:
-```bash
-make
-```
-
-Available targets:
-* **`make install`**: Run `./install.sh` to install configurations on your host.
-* **`make uninstall`**: Run `./uninstall.sh` to uninstall configurations and restore original backups on your host.
-* **`make docker-build`**: Build the Docker sandbox image.
-* **`make docker-run`**: Launch the Docker sandbox container interactively.
-* **`make docker-sandbox`**: Clean-build and run the Docker sandbox (optionally mounting a host path as a workspace).
-* **`make docker-clean`**: Clean up and remove the Docker sandbox image.
-
-### 🌌 Isolated Sandbox Environment
-
-If you want to preview or test changes to your dotfiles, or use your Neovim/Yazi configs to edit files on your host machine without modifying your host system, you can run them in an Ubuntu container using Docker.
-
-Make sure Docker is running on your host machine.
-
-#### 1. Running in Isolated Mode
-To launch a clean, fully isolated container with no access to host directories:
-```bash
-make docker-sandbox
-```
-
-#### 2. Running in Workspace Mode (Mount Host Folders)
-To use the sandbox environment to edit files on your host machine, specify the `path` parameter. This will bind-mount your host directory to `/workspace` inside the container:
-```bash
-# Mount the current directory
-make docker-sandbox path=.
-
-# Mount a specific project directory
-make docker-sandbox path=~/projects/my-app
-```
-
-Once inside the sandbox shell, you can simply run:
-* **`v` or `nvim`** to start editing your mounted host files with Neovim.
-* **`y` or `yazi`** to browse your mounted files in the Yazi terminal file manager.
-* **`exit`** to close and destroy the container.
 
 ---
 
