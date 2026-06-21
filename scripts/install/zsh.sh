@@ -4,7 +4,7 @@ if [[ "$INSTALL_PROFILE" == "full" ]] && command -v zsh &> /dev/null; then
     # Oh My Zsh Check
     if [ ! -d "$HOME/.oh-my-zsh" ]; then
       info "Oh My Zsh not found. Installing Oh My Zsh..."
-      RUNZSH=no sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+      RUNZSH=no sh -c "$(curl -fsSL --retry 3 --retry-delay 2 https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
     fi
 
     # Custom Plugin Clones

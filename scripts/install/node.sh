@@ -29,7 +29,7 @@ install_node_linux() {
   mkdir -p "$INSTALL_DIR"
   mkdir -p "$BIN_DIR"
   
-  if curl -fsSL "$DOWNLOAD_URL" -o "/tmp/${TARBALL}"; then
+  if curl -fsSL --retry 3 --retry-delay 2 "$DOWNLOAD_URL" -o "/tmp/${TARBALL}"; then
     info "Extracting Node.js..."
     tar -xJf "/tmp/${TARBALL}" -C "$INSTALL_DIR"
     rm "/tmp/${TARBALL}"
@@ -56,7 +56,7 @@ install_node_choice() {
 
   if [[ "$NON_INTERACTIVE" == "true" ]]; then
     # Standalone User-space (choice 1)
-    install_node_linux
+    install_node_linux || warn "Node.js installation failed. Web-related language servers will not function until Node.js is installed."
     return 0
   fi
 

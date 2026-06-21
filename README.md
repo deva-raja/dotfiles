@@ -1,6 +1,6 @@
 <!-- # 🌌 Portable Dotfiles -->
 
-A consolidated, premium, and fully automated configuration for your CLI environment, natively supporting **macOS & Linux** (and Windows via WSL2). This repository houses configurations for **Neovim (v0.10+)**, **Ghostty Terminal**, and **Zsh** with pre-configured developer tools like `fzf`, `zoxide`, and `starship`.
+A consolidated, premium, and fully automated configuration for your CLI environment, natively supporting **macOS & Linux** (and Windows via WSL2). This repository houses configurations for **Neovim (v0.11+ / Stable 0.12+)**, **Ghostty Terminal**, and **Zsh** with pre-configured developer tools like `fzf`, `zoxide`, and `starship`.
 ### 📸 Setup Preview
 ![Setup Preview](assets/preview.webp)
 
@@ -39,6 +39,7 @@ git clone https://github.com/deva-raja/dotfiles.git ~/dotfiles && cd ~/dotfiles 
     * [LSP & Code Intelligence](#lsp--code-intelligence)
     * [Other Utilities (Bookmarks, Minimap, Zen, Markdown)](#other-utilities-bookmarks-minimap-zen-markdown)
     * [Yazi File Manager Shortcuts](#yazi-file-manager-shortcuts)
+* [🛠️ Development & Sandbox Tools](#development--sandbox-tools)
 * [🗑️ Reset & Uninstallation](#reset--uninstallation)
 
 ---
@@ -279,6 +280,43 @@ t               ->  Create a new tab
 [ / ]           ->  Switch to the previous / next tab
 q               ->  Close Yazi (returning to shell)
 ```
+
+---
+
+## Development & Sandbox Tools
+
+This repository features a **Makefile** that serves as a task runner (similar to `package.json` scripts in Node.js) to automate dotfiles installation, uninstallation, and sandbox testing.
+
+### 🛠️ Makefile Commands
+
+To see all available commands, run:
+```bash
+make
+```
+
+Available targets:
+* **`make install`**: Run `./install.sh` to install configurations on your host.
+* **`make uninstall`**: Run `./uninstall.sh` to uninstall configurations and restore original backups on your host.
+* **`make docker-build`**: Build the Docker sandbox image.
+* **`make docker-run`**: Launch the Docker sandbox container interactively.
+* **`make docker-sandbox`**: Clean-build the Docker sandbox image and launch it immediately in Zsh.
+* **`make docker-clean`**: Clean up and remove the Docker sandbox image.
+
+### 🌌 Isolated Sandbox Environment
+
+If you want to preview or test changes to your dotfiles without modifying your host machine, you can run them in an isolated, clean Ubuntu container using Docker.
+
+Make sure Docker is running on your host machine, then run:
+```bash
+make docker-sandbox
+```
+
+This will automatically:
+1. Build the Docker sandbox image using the local [Dockerfile](Dockerfile).
+2. Install all system dependencies (Neovim, Zsh, fzf, ripgrep, python, ffmpeg, etc.).
+3. Execute `./install.sh --non-interactive --profile full` inside the container to install and configure everything.
+4. Launch you directly into an interactive Zsh shell inside the clean, isolated container.
+5. Auto-destroy the container upon exiting (via `exit`).
 
 ---
 
