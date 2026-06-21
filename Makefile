@@ -24,8 +24,12 @@ docker-build: ## Build the Docker sandbox image
 docker-run: ## Run the Docker sandbox container interactively
 	docker run -it --rm dotfiles-sandbox
 
-docker-sandbox: ## Build and run the Docker sandbox in one command
-	./docker-sandbox.sh
+# Path to mount inside the container (defaults to current directory)
+# Example: make docker-sandbox path=~/projects/my-app
+path ?= $(shell pwd)
+
+docker-sandbox: ## Clean-build and run the Docker sandbox (use path=/dir to mount host files)
+	./docker-sandbox.sh "$(path)"
 
 docker-clean: ## Clean up Docker sandbox images
 	docker rmi dotfiles-sandbox || true

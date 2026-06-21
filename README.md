@@ -299,24 +299,35 @@ Available targets:
 * **`make uninstall`**: Run `./uninstall.sh` to uninstall configurations and restore original backups on your host.
 * **`make docker-build`**: Build the Docker sandbox image.
 * **`make docker-run`**: Launch the Docker sandbox container interactively.
-* **`make docker-sandbox`**: Clean-build the Docker sandbox image and launch it immediately in Zsh.
+* **`make docker-sandbox`**: Clean-build and run the Docker sandbox (optionally mounting a host path as a workspace).
 * **`make docker-clean`**: Clean up and remove the Docker sandbox image.
 
 ### 🌌 Isolated Sandbox Environment
 
-If you want to preview or test changes to your dotfiles without modifying your host machine, you can run them in an isolated, clean Ubuntu container using Docker.
+If you want to preview or test changes to your dotfiles, or use your Neovim/Yazi configs to edit files on your host machine without modifying your host system, you can run them in an Ubuntu container using Docker.
 
-Make sure Docker is running on your host machine, then run:
+Make sure Docker is running on your host machine.
+
+#### 1. Running in Isolated Mode
+To launch a clean, fully isolated container with no access to host directories:
 ```bash
 make docker-sandbox
 ```
 
-This will automatically:
-1. Build the Docker sandbox image using the local [Dockerfile](Dockerfile).
-2. Install all system dependencies (Neovim, Zsh, fzf, ripgrep, python, ffmpeg, etc.).
-3. Execute `./install.sh --non-interactive --profile full` inside the container to install and configure everything.
-4. Launch you directly into an interactive Zsh shell inside the clean, isolated container.
-5. Auto-destroy the container upon exiting (via `exit`).
+#### 2. Running in Workspace Mode (Mount Host Folders)
+To use the sandbox environment to edit files on your host machine, specify the `path` parameter. This will bind-mount your host directory to `/workspace` inside the container:
+```bash
+# Mount the current directory
+make docker-sandbox path=.
+
+# Mount a specific project directory
+make docker-sandbox path=~/projects/my-app
+```
+
+Once inside the sandbox shell, you can simply run:
+* **`v` or `nvim`** to start editing your mounted host files with Neovim.
+* **`y` or `yazi`** to browse your mounted files in the Yazi terminal file manager.
+* **`exit`** to close and destroy the container.
 
 ---
 
