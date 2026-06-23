@@ -9,15 +9,15 @@ return {
       "nvim-lua/plenary.nvim",
     },
     keys = {
-      { "<leader>vn", "<cmd>ObsidianNew<cr>", desc = "Obsidian: New Note" },
-      { "<leader>vo", "<cmd>ObsidianSearch<cr>", desc = "Obsidian: Search Notes" },
-      { "<leader>vs", "<cmd>ObsidianQuickSwitch<cr>", desc = "Obsidian: Quick Switch" },
-      { "<leader>vb", "<cmd>ObsidianBacklinks<cr>", desc = "Obsidian: Show Backlinks" },
-      { "<leader>vt", "<cmd>ObsidianTemplate<cr>", desc = "Obsidian: Insert Template" },
-      { "<leader>vi", "<cmd>ObsidianPasteImg<cr>", desc = "Obsidian: Paste Image" },
-      { "<leader>vl", "<cmd>ObsidianLink<cr>", mode = "v", desc = "Obsidian: Link Selection" },
-      { "<leader>vl", "<cmd>ObsidianLinkNew<cr>", mode = "n", desc = "Obsidian: Link to New Note" },
-      { "<leader>vf", "<cmd>ObsidianFollowLink<cr>", desc = "Obsidian: Follow Link" },
+      { "<leader>vn", "<cmd>Obsidian new<cr>", desc = "Obsidian: New Note" },
+      { "<leader>vo", "<cmd>Obsidian search<cr>", desc = "Obsidian: Search Notes" },
+      { "<leader>vs", "<cmd>Obsidian quick_switch<cr>", desc = "Obsidian: Quick Switch" },
+      { "<leader>vb", "<cmd>Obsidian backlinks<cr>", desc = "Obsidian: Show Backlinks" },
+      { "<leader>vt", "<cmd>Obsidian template<cr>", desc = "Obsidian: Insert Template" },
+      { "<leader>vi", "<cmd>Obsidian paste_img<cr>", desc = "Obsidian: Paste Image" },
+      { "<leader>vl", "<cmd>Obsidian link<cr>", mode = "v", desc = "Obsidian: Link Selection" },
+      { "<leader>vl", "<cmd>Obsidian link_new<cr>", mode = "n", desc = "Obsidian: Link to New Note" },
+      { "<leader>vf", "<cmd>Obsidian follow_link<cr>", desc = "Obsidian: Follow Link" },
     },
     init = function()
       -- Automatically create the personal vault directory if it doesn't exist
@@ -45,7 +45,7 @@ return {
             templates = {
               folder = vim.NIL,
             },
-            disable_frontmatter = true,
+            frontmatter = { enabled = false },
           },
         },
       },
@@ -60,19 +60,9 @@ return {
         enabled = false,
       },
 
-      -- Disable frontmatter management by default
-      disable_frontmatter = true,
-
       -- Configure search/fuzzy finder picker
       picker = {
         name = "telescope.nvim",
-      },
-
-      -- Completion settings (specifically for blink.cmp integration)
-      completion = {
-        nvim_cmp = false,
-        blink = true,
-        min_chars = 2,
       },
 
       -- Specify where to put daily notes
@@ -84,35 +74,44 @@ return {
         template = nil,
       },
 
-      -- Configure mappings
-      mappings = {
-        -- Overrides the 'gf' mapping to work on markdown/Obsidian links.
-        ["gf"] = {
-          action = function()
-            return require("obsidian").util.gf_passthrough()
-          end,
-          opts = { noremap = false, expr = true, buffer = true },
-        },
+      -- New-style "Obsidian <subcommand>" commands only (legacy PascalCase
+      -- commands are removed in obsidian.nvim 4.0; see wiki/Commands).
+      legacy_commands = false,
+
+      -- Frontmatter management: disabled by default, custom structure when enabled.
+      frontmatter = {
+        enabled = false,
+        func = function(note)
+          -- Add the title of the note as an alias
+          if note.title then
+            note:add_alias(note.title)
+          end
+
+          local out = { id = note.id, aliases = note.aliases, tags = note.tags }
+
+          -- Keep existing frontmatter fields
+          if note.metadata ~= nil and not vim.tbl_isempty(note.metadata) then
+            for k, v in pairs(note.metadata) do
+              out[k] = v
+            end
+          end
+
+          return out
+        end,
       },
 
-      -- Customize frontmatter structure
-      note_frontmatter_func = function(note)
-        -- Add the title of the note as an alias
-        if note.title then
-          note:add_alias(note.title)
-        end
-
-        local out = { id = note.id, aliases = note.aliases, tags = note.tags }
-
-        -- Keep existing frontmatter fields
-        if note.metadata ~= nil and not vim.tbl_isempty(note.metadata) then
-          for k, v in pairs(note.metadata) do
-            out[k] = v
-          end
-        end
-
-        return out
-      end,
+      callbacks = {
+        -- Replaces the deprecated `mappings` option (see wiki/Keymaps):
+        -- buffer-local keymaps are now set per-note via this callback.
+        -- 'gf' follows links/checkboxes/tags, matching the old gf_passthrough.
+        enter_note = function()
+          vim.keymap.set("n", "gf", require("obsidian.api").smart_action, {
+            buffer = true,
+            expr = true,
+            desc = "Obsidian: Follow link/checkbox/tag",
+          })
+        end,
+      },
     },
     config = function(_, opts)
       require("obsidian").setup(opts)

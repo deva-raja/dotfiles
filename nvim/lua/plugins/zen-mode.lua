@@ -4,7 +4,7 @@ return {
     cmd = "ZenMode",
     opts = {
       window = {
-        width = 120,
+        width = 0.55, -- fraction of editor width (zen-mode treats <= 1 as a percentage)
         options = {
           number = false,
           relativenumber = false,
@@ -16,5 +16,5 @@ return {
         twilight = { enabled = false },
       },
     },
-  }
+  },
 }
