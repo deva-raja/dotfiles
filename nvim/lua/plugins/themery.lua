@@ -7,7 +7,7 @@ return {
     },
     config = function()
       require("themery").setup({
-        themes = { "rose-pine-moon", "kanagawa-dragon", "kanagawa-wave", "kanagawa-lotus" },
+        themes = { "rose-pine-moon" },
         livePreview = true,
       })
     end,

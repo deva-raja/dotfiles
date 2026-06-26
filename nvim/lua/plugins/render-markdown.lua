@@ -6,6 +6,7 @@ return {
     enabled = not is_minimal,
     dependencies = { "nvim-treesitter/nvim-treesitter", "nvim-tree/nvim-web-devicons" },
     opts = {
+      enabled = false,
       heading = {
         enabled = true,
         icons = {},        -- no "①②③"-style level icons before heading text

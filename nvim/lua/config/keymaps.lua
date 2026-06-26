@@ -206,15 +206,14 @@ map("n", "<leader>ba", function() require("bookmarks").add_bookmarks() end, { de
 map("n", "<leader>bt", function() require("bookmarks").toggle_bookmarks() end,
    { desc = "Bookmarks: Toggle Bookmarks List" })
 
--- Minimap (m for Minimap)
-map("n", "<leader>mm", function() require("mini.map").toggle() end, { desc = "Minimap: Toggle" })
-map("n", "<leader>mf", function() require("mini.map").toggle_focus() end, { desc = "Minimap: Focus" })
+-- Minimap
+map("n", "<leader>m", function() require("mini.map").toggle() end, { desc = "Minimap: Toggle" })
 
--- Markdown rendering (m for Markdown, r for Render)
+-- Markdown rendering
 local is_minimal = vim.fn.exists('$SSH_CONNECTION') == 1 or
 vim.fn.filereadable(vim.fn.stdpath('config') .. '/.minimal') == 1
 if not is_minimal then
-   map("n", "<leader>mr", "<cmd>RenderMarkdown toggle<CR>", { desc = "Markdown: Toggle Rendering Preview" })
+   map("n", "<leader>rm", "<cmd>RenderMarkdown toggle<CR>", { desc = "Markdown: Toggle Rendering Preview" })
 end
 
 
