@@ -3,7 +3,11 @@ return {
     "obsidian-nvim/obsidian.nvim",
     version = "*", -- recommended, use latest release instead of latest commit
     lazy = true,
-    ft = "markdown",
+    event = {
+      -- Only load obsidian.nvim for markdown files in your vault
+      "BufReadPre " .. vim.fn.expand("~/Documents/obsidian") .. "/**/*.md",
+      "BufNewFile " .. vim.fn.expand("~/Documents/obsidian") .. "/**/*.md",
+    },
     dependencies = {
       -- Required.
       "nvim-lua/plenary.nvim",
@@ -19,34 +23,11 @@ return {
       { "<leader>vl", "<cmd>Obsidian link_new<cr>", mode = "n", desc = "Obsidian: Link to New Note" },
       { "<leader>vf", "<cmd>Obsidian follow_link<cr>", desc = "Obsidian: Follow Link" },
     },
-    init = function()
-      -- Automatically create the personal vault directory if it doesn't exist
-      local personal_vault = vim.fn.expand("~/Documents/Obisidian")
-      if vim.fn.isdirectory(personal_vault) == 0 then
-        pcall(vim.fn.mkdir, personal_vault, "p")
-      end
-    end,
     opts = {
       workspaces = {
         {
           name = "personal",
-          path = "~/Documents/Obisidian",
-        },
-        -- Dynamic workspace for files outside defined vaults to avoid warnings
-        {
-          name = "no-vault",
-          path = function()
-            -- Returns the parent directory of the current buffer
-            return assert(vim.fs.dirname(vim.api.nvim_buf_get_name(0)))
-          end,
-          overrides = {
-            notes_subdir = vim.NIL,
-            new_notes_location = "current_dir",
-            templates = {
-              folder = vim.NIL,
-            },
-            frontmatter = { enabled = false },
-          },
+          path = "~/Documents/obsidian",
         },
       },
 
@@ -67,7 +48,7 @@ return {
 
       -- Specify where to put daily notes
       daily_notes = {
-        folder = "dailies",
+        folder = vim.NIL,
         date_format = "%Y-%m-%d",
         alias_format = "%B %d, %Y",
         default_tags = { "daily-notes" },
