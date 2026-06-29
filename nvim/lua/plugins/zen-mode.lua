@@ -8,6 +8,7 @@ return {
         options = {
           number = false,
           relativenumber = false,
+          wrap = true,
         },
       },
       plugins = {
