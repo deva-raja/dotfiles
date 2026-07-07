@@ -164,13 +164,21 @@ map("n", "<leader>gc", "<cmd>%bd|e#|bd#<CR>", { desc = "Buffer: Close Other Buff
 -- ==========================================
 
 map("n", "<leader>i", function()
-   local utils = require("telescope.utils")
-   local _, ret, _ = utils.get_os_command_output({ "git", "rev-parse", "--is-inside-work-tree" })
-   if ret == 0 then
-      require("telescope.builtin").git_files()
-   else
-      require("telescope.builtin").find_files()
-   end
+   require("telescope.builtin").find_files({
+      prompt_title = "Find Files (Incl. Untracked/Env)",
+      find_command = {
+         "fd",
+         "--type", "f",
+         "--hidden",
+         "--no-ignore",
+         "--exclude", ".git",
+         "--exclude", "node_modules",
+         "--exclude", "dist",
+         "--exclude", "generated",
+         "--exclude", "build",
+         "--exclude", ".next",
+      },
+   })
 end, { desc = "Files: Find File (Git/Workspace)" })
 map("n", "<leader>fs", "<cmd>Telescope live_grep<CR>", { desc = "Search: Live Grep (Workspace)" })
 map("n", "<leader>;", "<cmd>Telescope keymaps<CR>", { desc = "Command Palette" })
