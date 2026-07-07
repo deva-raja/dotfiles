@@ -183,7 +183,20 @@ map("n", "<leader>i", function()
       },
    })
 end, { desc = "Files: Find File (Git/Workspace)" })
-map("n", "<leader>fs", "<cmd>Telescope live_grep<CR>", { desc = "Search: Live Grep (Workspace)" })
+map("n", "<leader>fs", function()
+   require("telescope.builtin").live_grep({
+      additional_args = function(opts)
+         return {
+            "--glob", "!**/.git/*",
+            "--glob", "!**/node_modules/*",
+            "--glob", "!**/dist/*",
+            "--glob", "!**/generated/*",
+            "--glob", "!**/build/*",
+            "--glob", "!**/.next/*",
+         }
+      end,
+   })
+end, { desc = "Search: Live Grep (Workspace)" })
 map("n", "<leader>;", "<cmd>Telescope keymaps<CR>", { desc = "Command Palette" })
 map("n", "<leader>n", "<cmd>Telescope buffers<CR>", { desc = "Buffer: List Open Buffers" })
 map("n", "<leader>?", "<cmd>Telescope keymaps<CR>", { desc = "Help: Keymaps Search" })
