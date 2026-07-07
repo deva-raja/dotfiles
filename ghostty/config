@@ -10,6 +10,9 @@ keybind = super+9=unbind
 keybind = super+digit_8=unbind
 keybind = super+digit_9=unbind
 keybind = super+j=unbind
+keybind = super+h=unbind
+keybind = super+k=unbind
+keybind = super+l=unbind
 # Command + Shift + [ and Command + Shift + ] are reserved by macOS for native tab
 # switching (Window > Show Previous/Next Tab) and can't be unbound at the app level,
 # so leave them as Ghostty's default tab switching.
