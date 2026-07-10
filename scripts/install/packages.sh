@@ -17,11 +17,11 @@ if ask_yes_no "Do you want to check and install missing dependencies?"; then
 
     # Install packages
     if [[ "$INSTALL_PROFILE" == "minimal" ]]; then
-      info "Installing dependencies via Homebrew (neovim, starship, zoxide, fzf, ripgrep, fd, unzip, stow, tree-sitter)..."
-      brew install neovim starship zoxide fzf ripgrep fd unzip stow tree-sitter
+      info "Installing dependencies via Homebrew (neovim, starship, zoxide, fzf, ripgrep, fd, tmux, unzip, stow, tree-sitter)..."
+      brew install neovim starship zoxide fzf ripgrep fd tmux unzip stow tree-sitter
     else
-      info "Installing dependencies via Homebrew (neovim, starship, zoxide, fzf, ripgrep, fd, zsh, node, unzip, stow, tree-sitter)..."
-      brew install neovim starship zoxide fzf ripgrep fd zsh node unzip stow tree-sitter
+      info "Installing dependencies via Homebrew (neovim, starship, zoxide, fzf, ripgrep, fd, tmux, zsh, node, unzip, stow, tree-sitter)..."
+      brew install neovim starship zoxide fzf ripgrep fd tmux zsh node unzip stow tree-sitter
       
       # Install Ghostty on macOS if not installed
       if ! command -v ghostty &> /dev/null && ! brew list --cask ghostty &> /dev/null; then
@@ -40,9 +40,9 @@ if ask_yes_no "Do you want to check and install missing dependencies?"; then
       info "Installing dependencies via apt-get..."
       sudo apt-get update
       if [[ "$INSTALL_PROFILE" == "minimal" ]]; then
-        sudo apt-get install -y zoxide fzf ripgrep fd-find curl git build-essential unzip stow
+        sudo apt-get install -y zoxide fzf ripgrep fd-find tmux curl git build-essential unzip stow
       else
-        sudo apt-get install -y zoxide fzf ripgrep fd-find zsh curl git build-essential unzip python3 python3-pip python3-venv stow
+        sudo apt-get install -y zoxide fzf ripgrep fd-find tmux zsh curl git build-essential unzip python3 python3-pip python3-venv stow
       fi
 
       # Install Starship via official install script since it is not in default APT repositories
@@ -133,9 +133,9 @@ if ask_yes_no "Do you want to check and install missing dependencies?"; then
     elif command -v pacman &> /dev/null; then
       info "Installing dependencies via pacman..."
       if [[ "$INSTALL_PROFILE" == "minimal" ]]; then
-        sudo pacman -Syu --needed neovim starship zoxide fzf ripgrep fd curl git base-devel unzip stow
+        sudo pacman -Syu --needed neovim starship zoxide fzf ripgrep fd tmux curl git base-devel unzip stow
       else
-        sudo pacman -Syu --needed neovim starship zoxide fzf ripgrep fd zsh curl git base-devel unzip python python-pip stow
+        sudo pacman -Syu --needed neovim starship zoxide fzf ripgrep fd tmux zsh curl git base-devel unzip python python-pip stow
         
         if [[ "$INSTALL_YAZI" == "true" ]]; then
           info "Installing Yazi and dependencies via pacman..."
@@ -145,9 +145,9 @@ if ask_yes_no "Do you want to check and install missing dependencies?"; then
     elif command -v dnf &> /dev/null; then
       info "Installing dependencies via dnf..."
       if [[ "$INSTALL_PROFILE" == "minimal" ]]; then
-        sudo dnf install -y neovim starship zoxide fzf ripgrep fd-find curl git make gcc gcc-c++ unzip stow
+        sudo dnf install -y neovim starship zoxide fzf ripgrep fd-find tmux curl git make gcc gcc-c++ unzip stow
       else
-        sudo dnf install -y neovim starship zoxide fzf ripgrep fd-find zsh curl git make gcc gcc-c++ unzip python3-pip stow
+        sudo dnf install -y neovim starship zoxide fzf ripgrep fd-find tmux zsh curl git make gcc gcc-c++ unzip python3-pip stow
         
         if [[ "$INSTALL_YAZI" == "true" ]]; then
           info "Installing Yazi and dependencies via dnf..."
@@ -160,7 +160,7 @@ if ask_yes_no "Do you want to check and install missing dependencies?"; then
       fi
     else
       warn "No supported package manager found. Please install the following tools manually:"
-      warn "neovim, starship, zoxide, fzf, ripgrep, fd, curl, git, make, gcc, unzip, stow"
+      warn "neovim, starship, zoxide, fzf, ripgrep, fd, tmux, curl, git, make, gcc, unzip, stow"
     fi
 
     # Install/Update tree-sitter-cli to 0.22+ if missing or older (required by nvim-treesitter and kulala)
