@@ -20,3 +20,6 @@ keybind = super+l=unbind
 # Pass Command + [ and Command + ] through to Neovim for terminal resizing
 keybind = super+[=unbind
 keybind = super+]=unbind
+
+# Command + Backspace: kill whole line in shell (overrides Ghostty's default scroll-to-top)
+keybind = super+backspace=text:\x15

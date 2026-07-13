@@ -486,6 +486,17 @@ vim.api.nvim_create_autocmd("TermOpen", {
       -- Hide terminal with 'Leader + q' in normal mode inside terminal buffer (keeps session running)
       map("n", "<leader>q", hide_current_terminal,
          vim.tbl_extend("force", opts, { desc = "Terminal: Hide Current Session" }))
+
+      -- Ctrl+U in terminal-normal mode: re-enter terminal mode and forward to tmux so the
+      -- root-level `bind-key -n C-u copy-mode \; halfpage-up` fires. Without this, Ctrl+U
+      -- in normal mode only scrolls neovim's terminal buffer, which is limited to the
+      -- current tmux screen — not the full 50k-line tmux scrollback.
+      map("n", "<C-u>", function()
+         vim.cmd("startinsert")
+         vim.schedule(function()
+            vim.fn.feedkeys("\x15", "t")
+         end)
+      end, vim.tbl_extend("force", opts, { desc = "Terminal: Scroll Up (tmux copy-mode)" }))
    end,
 })
 
