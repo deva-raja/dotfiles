@@ -21,5 +21,9 @@ keybind = super+l=unbind
 keybind = super+[=unbind
 keybind = super+]=unbind
 
-# Command + Backspace: kill whole line in shell (overrides Ghostty's default scroll-to-top)
-keybind = super+backspace=text:\x15
+# Command + Backspace: kill whole line in shell (overrides Ghostty's default scroll-to-top).
+# Sends F12's CSI code rather than a literal Ctrl-U (\x15), since tmux's root
+# keytable now claims plain Ctrl-U for the scroll-freeze copy-mode trigger -
+# reusing that byte here would make Cmd+Backspace scroll instead of killing
+# the line. zsh/custom.zsh binds this same F12 sequence to kill-whole-line.
+keybind = super+backspace=text:\x1b[24~

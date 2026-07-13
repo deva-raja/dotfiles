@@ -37,6 +37,12 @@ fi
 # Note: Zsh-autosuggestions plugin must be loaded first (e.g. by Oh My Zsh)
 bindkey '^ ' forward-word
 
+# Command + Backspace (kill whole line): Ghostty sends F12's CSI code for this
+# instead of a literal Ctrl-U, since tmux's root keytable now claims Ctrl-U
+# for scroll-freeze copy-mode. Bind it to the same widget Ctrl-U itself uses
+# by default, so behavior is unchanged from before.
+bindkey '\e[24~' kill-whole-line
+
 # Yazi wrapper function to change directory on exit
 function y() {
   local tmp="$(mktemp -t "yazi-cwd.XXXXXX")" cwd

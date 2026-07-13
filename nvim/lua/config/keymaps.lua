@@ -487,6 +487,30 @@ vim.api.nvim_create_autocmd("TermOpen", {
       map("n", "<leader>q", hide_current_terminal,
          vim.tbl_extend("force", opts, { desc = "Terminal: Hide Current Session" }))
 
+      -- Shift+Enter -> insert newline in Ink apps (Claude Code, Codex).
+      -- Neither relaying Ghostty's raw escape sequence for Shift+Enter nor
+      -- sending a bare LF worked - Claude Code doesn't distinguish LF from
+      -- CR at all, so a bare LF just submits like plain Enter. But
+      -- Alt+Enter already reliably inserts a newline today (ESC + CR, the
+      -- classic terminal "meta" prefix convention), so reuse that exact,
+      -- already-working byte sequence for Shift+Enter too instead of
+      -- inventing yet another format.
+      map("t", "\27[27;2;13~", function()
+         local job_id = vim.b.terminal_job_id
+         if job_id then
+            vim.fn.chansend(job_id, "\27\r")
+         end
+      end, vim.tbl_extend("force", opts, { desc = "Terminal: Send Shift+Enter (newline) to job" }))
+
+      -- Fallback in case Neovim ever does decode it as a named key (e.g. if
+      -- Ghostty settings/terminfo change to emit the Kitty CSI-u format).
+      map("t", "<S-CR>", function()
+         local job_id = vim.b.terminal_job_id
+         if job_id then
+            vim.fn.chansend(job_id, "\27\r")
+         end
+      end, vim.tbl_extend("force", opts, { desc = "Terminal: Send Shift+Enter (newline) to job [fallback]" }))
+
       -- Ctrl+U in terminal-normal mode: re-enter terminal mode and forward to tmux so the
       -- root-level `bind-key -n C-u copy-mode \; halfpage-up` fires. Without this, Ctrl+U
       -- in normal mode only scrolls neovim's terminal buffer, which is limited to the
