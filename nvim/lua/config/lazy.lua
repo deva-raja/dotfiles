@@ -33,3 +33,34 @@ require("lazy").setup({
   -- automatically check for plugin updates
   checker = { enabled = true },
 })
+
+-- Automatically sync (install/update) plugins, throttled to once a day
+local function lazy_auto_sync()
+  local stamp_file = vim.fn.stdpath("data") .. "/lazy-sync-stamp"
+  local one_day = 24 * 60 * 60
+  local now = os.time()
+  local last = 0
+
+  local f = io.open(stamp_file, "r")
+  if f then
+    last = tonumber(f:read("*a")) or 0
+    f:close()
+  end
+
+  if now - last < one_day then
+    return
+  end
+
+  require("lazy").sync({ show = false })
+
+  local wf = io.open(stamp_file, "w")
+  if wf then
+    wf:write(tostring(now))
+    wf:close()
+  end
+end
+
+vim.api.nvim_create_autocmd("User", {
+  pattern = "VeryLazy",
+  callback = lazy_auto_sync,
+})
