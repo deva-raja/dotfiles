@@ -3,7 +3,7 @@
 # ==============================================================================
 
 # Ensure local bin directories are in PATH
-export PATH="$HOME/.local/bin:$HOME/bin:$PATH"
+export PATH="$HOME/.local/bin:$HOME/bin:$HOME/go/bin:$PATH"
 
 # Quick editor opens & aliases
 export EDITOR="nvim"
@@ -44,7 +44,7 @@ bindkey '^ ' forward-word
 bindkey '\e[24~' kill-whole-line
 
 # Yazi wrapper function to change directory on exit
-function y() {
+function yf() {
   local tmp="$(mktemp -t "yazi-cwd.XXXXXX")" cwd
   command yazi "$@" --cwd-file="$tmp"
   IFS= read -r -d '' cwd < "$tmp"
@@ -61,3 +61,21 @@ function yc() {
   command rm -f -- "$tmp"
 }
 
+# Find and kill the process(es) listening on a specified port
+freeport() {
+  if [[ -z "$1" ]]; then
+    echo "Usage: freeport <port>"
+    return 1
+  fi
+  local port="$1"
+  local pids
+  pids=($(lsof -t -i :"$port"))
+  
+  if [[ ${#pids[@]} -gt 0 ]]; then
+    echo "Killing process(es) on port $port (PID: ${pids[*]})..."
+    kill -9 "${pids[@]}"
+  else
+    echo "No process found running on port $port."
+  fi
+}
+alias free=freeport

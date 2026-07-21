@@ -136,7 +136,7 @@ make docker-sandbox path=~/projects/my-app
 
 Once inside the sandbox shell, you can simply run:
 * **`v` or `nvim`** to start editing your mounted host files with Neovim.
-* **`y` or `yazi`** to browse your mounted files in the Yazi terminal file manager.
+* **`yf` or `yazi`** to browse your mounted files in the Yazi terminal file manager.
 * **`exit`** to close and destroy the container.
 
 ---
@@ -323,7 +323,7 @@ gf              ->  Go to file path (resolves TypeScript paths/aliases like '@/c
 
 ### Yazi File Manager Shortcuts
 ```text
-y               ->  Open Yazi (Standard wrapper with shell directory change on exit)
+yf              ->  Open Yazi (Standard wrapper with shell directory change on exit)
 yc              ->  Open Yazi in dual-tab mode (Tab 1: Downloads, Tab 2: Current Folder)
 F               ->  Jump to a file/directory via fzf search (inside Yazi)
 z               ->  Jump to a file/directory via fzf search
