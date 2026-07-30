@@ -602,6 +602,95 @@ map("n", "<leader>gj", function()
    hunk:toggle()
 end, { desc = "Git: Open Hunk Diff Viewer (Tab)" })
 
+map("n", "<leader>gb", function()
+   -- Get all local and remote branch names
+   local branches = vim.fn.systemlist("git branch -a --format='%(refname:short)'")
+   local clean_branches = {}
+   for _, branch in ipairs(branches) do
+      if branch ~= "" and branch ~= "origin" then
+         if not branch:match("/HEAD$") then
+            table.insert(clean_branches, branch)
+         end
+      end
+   end
+
+   -- Prioritize origin/main at the top of the list if it exists
+   local default_branch = "origin/main"
+   local found_idx = nil
+   for i, b in ipairs(clean_branches) do
+      if b == default_branch then
+         found_idx = i
+         break
+      end
+   end
+   if found_idx then
+      table.remove(clean_branches, found_idx)
+      table.insert(clean_branches, 1, default_branch)
+   end
+
+   -- Add helper choices
+   table.insert(clean_branches, 1, "Enter Custom Ref / Branch...")
+   table.insert(clean_branches, 1, "Working Tree (Local Changes)")
+
+   -- Load Telescope dependencies
+   local pickers = require("telescope.pickers")
+   local finders = require("telescope.finders")
+   local conf = require("telescope.config").values
+   local actions = require("telescope.actions")
+   local action_state = require("telescope.actions.state")
+
+   -- Launch Telescope picker
+   pickers.new({}, {
+      prompt_title = "Select branch to diff against",
+      finder = finders.new_table({
+         results = clean_branches,
+      }),
+      sorter = conf.generic_sorter({}),
+      attach_mappings = function(prompt_bufnr, map)
+         actions.select_default:replace(function()
+            actions.close(prompt_bufnr)
+            local selection = action_state.get_selected_entry()
+            if not selection then return end
+            local choice = selection[1]
+
+            local function launch_hunk(target)
+               local cmd = "hunk diff"
+               if target and target ~= "" then
+                  cmd = cmd .. " " .. target
+               end
+               local Terminal = require("toggleterm.terminal").Terminal
+               local hunk_term = Terminal:new({
+                  cmd = cmd,
+                  dir = "git_dir",
+                  direction = "tab",
+                  close_on_exit = true,
+                  on_open = function(term)
+                     vim.cmd("startinsert!")
+                     vim.api.nvim_buf_set_keymap(term.bufnr, "t", "<Esc>", "<Esc>", { noremap = true, silent = true })
+                  end,
+               })
+               hunk_term:toggle()
+            end
+
+            -- Run after Telescope closes to prevent focus race condition and start in insert mode
+            vim.schedule(function()
+               if choice == "Working Tree (Local Changes)" then
+                  launch_hunk(nil)
+               elseif choice == "Enter Custom Ref / Branch..." then
+                  vim.ui.input({ prompt = "Enter custom branch/commit ref: " }, function(input_ref)
+                     if not input_ref or input_ref == "" then return end
+                     launch_hunk(input_ref)
+                  end)
+               else
+                  launch_hunk(choice)
+               end
+            end)
+         end)
+         return true
+      end,
+   }):find()
+end, { desc = "Git: Compare Branches / Review PR" })
+
 map("n", "<leader>gg", "<cmd>Neogit<CR>", { desc = "Git: Toggle Neogit Status" })
 
 -- Open CodeDiff in inline mode

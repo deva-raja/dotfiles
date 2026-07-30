@@ -9,7 +9,6 @@ export PATH="$HOME/.local/bin:$HOME/bin:$HOME/go/bin:$PATH"
 export EDITOR="nvim"
 alias v="nvim"
 alias p="pnpm"
-alias pw="playwright-cli"
 alias cc="claude"
 
 # Integrate zoxide (smarter cd command)
