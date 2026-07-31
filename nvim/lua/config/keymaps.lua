@@ -603,7 +603,12 @@ local function toggle_hunk_diff()
    hunk:toggle()
 end
 
-local function launch_hunk_show(target, file_path)
+local open_git_menu
+local show_git_commits
+local show_file_commits
+local compare_branches
+
+local function launch_hunk_show(target, file_path, on_close)
    local cmd = "hunk show"
    if target and target ~= "" then
       cmd = cmd .. " " .. target
@@ -621,11 +626,16 @@ local function launch_hunk_show(target, file_path)
          vim.cmd("startinsert!")
          vim.api.nvim_buf_set_keymap(term.bufnr, "t", "<Esc>", "<Esc>", { noremap = true, silent = true })
       end,
+      on_close = function(term)
+         if on_close then
+            vim.schedule(on_close)
+         end
+      end,
    })
    hunk_term:toggle()
 end
 
-local function compare_branches()
+compare_branches = function(on_close)
    -- Get all local and remote branch names
    local branches = vim.fn.systemlist("git branch -a --format='%(refname:short)'")
    local clean_branches = {}
@@ -691,6 +701,11 @@ local function compare_branches()
                      vim.cmd("startinsert!")
                      vim.api.nvim_buf_set_keymap(term.bufnr, "t", "<Esc>", "<Esc>", { noremap = true, silent = true })
                   end,
+                  on_close = function(term)
+                     vim.schedule(function()
+                        compare_branches(on_close)
+                     end)
+                  end,
                })
                hunk_term:toggle()
             end
@@ -701,7 +716,12 @@ local function compare_branches()
                   launch_hunk(nil)
                elseif choice == "Enter Custom Ref / Branch..." then
                   vim.ui.input({ prompt = "Enter custom branch/commit ref: " }, function(input_ref)
-                     if not input_ref or input_ref == "" then return end
+                     if not input_ref or input_ref == "" then
+                        vim.schedule(function()
+                           compare_branches(on_close)
+                        end)
+                        return
+                     end
                      launch_hunk(input_ref)
                   end)
                else
@@ -709,6 +729,16 @@ local function compare_branches()
                end
             end)
          end)
+
+         local function go_back()
+            actions.close(prompt_bufnr)
+            if on_close then
+               vim.schedule(on_close)
+            end
+         end
+         map_cb("i", "<Esc>", go_back)
+         map_cb("n", "<Esc>", go_back)
+
          return true
       end,
    }):find()
@@ -738,7 +768,63 @@ local function close_codediff()
    vim.cmd("tabclose")
 end
 
-local function open_git_menu()
+show_git_commits = function()
+   local actions = require("telescope.actions")
+   local action_state = require("telescope.actions.state")
+
+   require("telescope.builtin").git_commits({
+      attach_mappings = function(commits_prompt_bufnr, commits_map_cb)
+         actions.select_default:replace(function()
+            actions.close(commits_prompt_bufnr)
+            local commits_selection = action_state.get_selected_entry()
+            if not commits_selection then return end
+            local commit_hash = commits_selection.value
+            vim.schedule(function()
+               launch_hunk_show(commit_hash, nil, show_git_commits)
+            end)
+         end)
+
+         local function go_back()
+            actions.close(commits_prompt_bufnr)
+            vim.schedule(open_git_menu)
+         end
+         commits_map_cb("i", "<Esc>", go_back)
+         commits_map_cb("n", "<Esc>", go_back)
+         return true
+      end,
+   })
+end
+
+show_file_commits = function(current_file)
+   local actions = require("telescope.actions")
+   local action_state = require("telescope.actions.state")
+
+   require("telescope.builtin").git_bcommits({
+      attach_mappings = function(bcommits_prompt_bufnr, bcommits_map_cb)
+         actions.select_default:replace(function()
+            actions.close(bcommits_prompt_bufnr)
+            local bcommits_selection = action_state.get_selected_entry()
+            if not bcommits_selection then return end
+            local commit_hash = bcommits_selection.value
+            vim.schedule(function()
+               launch_hunk_show(commit_hash, current_file, function()
+                  show_file_commits(current_file)
+               end)
+            end)
+         end)
+
+         local function go_back()
+            actions.close(bcommits_prompt_bufnr)
+            vim.schedule(open_git_menu)
+         end
+         bcommits_map_cb("i", "<Esc>", go_back)
+         bcommits_map_cb("n", "<Esc>", go_back)
+         return true
+      end,
+   })
+end
+
+open_git_menu = function()
    local current_file = vim.api.nvim_buf_get_name(0)
    if current_file == "" or vim.bo.buftype ~= "" then
       current_file = nil
@@ -789,39 +875,23 @@ local function open_git_menu()
                if action == "hunk_diff" then
                   toggle_hunk_diff()
                elseif action == "compare_branches" then
-                  compare_branches()
+                  compare_branches(open_git_menu)
                elseif action == "tele_commits" then
-                  require("telescope.builtin").git_commits({
-                     attach_mappings = function(commits_prompt_bufnr, commits_map_cb)
-                        actions.select_default:replace(function()
-                           actions.close(commits_prompt_bufnr)
-                           local commits_selection = action_state.get_selected_entry()
-                           if not commits_selection then return end
-                           local commit_hash = commits_selection.value
-                           vim.schedule(function()
-                              launch_hunk_show(commit_hash)
-                           end)
-                        end)
-                        return true
-                     end,
-                  })
+                  show_git_commits()
                elseif action == "tele_bcommits" then
-                  require("telescope.builtin").git_bcommits({
-                     attach_mappings = function(bcommits_prompt_bufnr, bcommits_map_cb)
-                        actions.select_default:replace(function()
-                           actions.close(bcommits_prompt_bufnr)
-                           local bcommits_selection = action_state.get_selected_entry()
-                           if not bcommits_selection then return end
-                           local commit_hash = bcommits_selection.value
-                           vim.schedule(function()
-                              launch_hunk_show(commit_hash, current_file)
-                           end)
-                        end)
+                  show_file_commits(current_file)
+               elseif action == "tele_status" then
+                  require("telescope.builtin").git_status({
+                     attach_mappings = function(status_prompt_bufnr, status_map_cb)
+                        local function go_back()
+                           actions.close(status_prompt_bufnr)
+                           vim.schedule(open_git_menu)
+                        end
+                        status_map_cb("i", "<Esc>", go_back)
+                        status_map_cb("n", "<Esc>", go_back)
                         return true
                      end,
                   })
-               elseif action == "tele_status" then
-                  require("telescope.builtin").git_status()
                elseif action == "codediff_side" then
                   open_codediff_side()
                elseif action == "codediff_inline" then
@@ -829,9 +899,29 @@ local function open_git_menu()
                elseif action == "codediff_history" then
                   vim.cmd("CodeDiff history")
                elseif action == "tele_branches" then
-                  require("telescope.builtin").git_branches()
+                  require("telescope.builtin").git_branches({
+                     attach_mappings = function(branches_prompt_bufnr, branches_map_cb)
+                        local function go_back()
+                           actions.close(branches_prompt_bufnr)
+                           vim.schedule(open_git_menu)
+                        end
+                        branches_map_cb("i", "<Esc>", go_back)
+                        branches_map_cb("n", "<Esc>", go_back)
+                        return true
+                     end,
+                  })
                elseif action == "tele_stash" then
-                  require("telescope.builtin").git_stash()
+                  require("telescope.builtin").git_stash({
+                     attach_mappings = function(stash_prompt_bufnr, stash_map_cb)
+                        local function go_back()
+                           actions.close(stash_prompt_bufnr)
+                           vim.schedule(open_git_menu)
+                        end
+                        stash_map_cb("i", "<Esc>", go_back)
+                        stash_map_cb("n", "<Esc>", go_back)
+                        return true
+                     end,
+                  })
                elseif action == "lazygit" then
                   toggle_lazygit()
                elseif action == "neogit" then
