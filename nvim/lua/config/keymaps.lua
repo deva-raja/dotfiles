@@ -603,6 +603,28 @@ local function toggle_hunk_diff()
    hunk:toggle()
 end
 
+local function launch_hunk_show(target, file_path)
+   local cmd = "hunk show"
+   if target and target ~= "" then
+      cmd = cmd .. " " .. target
+   end
+   if file_path and file_path ~= "" then
+      cmd = cmd .. " -- " .. vim.fn.shellescape(file_path)
+   end
+   local Terminal = require("toggleterm.terminal").Terminal
+   local hunk_term = Terminal:new({
+      cmd = cmd,
+      dir = "git_dir",
+      direction = "tab",
+      close_on_exit = true,
+      on_open = function(term)
+         vim.cmd("startinsert!")
+         vim.api.nvim_buf_set_keymap(term.bufnr, "t", "<Esc>", "<Esc>", { noremap = true, silent = true })
+      end,
+   })
+   hunk_term:toggle()
+end
+
 local function compare_branches()
    -- Get all local and remote branch names
    local branches = vim.fn.systemlist("git branch -a --format='%(refname:short)'")
@@ -717,6 +739,11 @@ local function close_codediff()
 end
 
 local function open_git_menu()
+   local current_file = vim.api.nvim_buf_get_name(0)
+   if current_file == "" or vim.bo.buftype ~= "" then
+      current_file = nil
+   end
+
    local pickers = require("telescope.pickers")
    local finders = require("telescope.finders")
    local conf = require("telescope.config").values
@@ -764,9 +791,35 @@ local function open_git_menu()
                elseif action == "compare_branches" then
                   compare_branches()
                elseif action == "tele_commits" then
-                  require("telescope.builtin").git_commits()
+                  require("telescope.builtin").git_commits({
+                     attach_mappings = function(commits_prompt_bufnr, commits_map_cb)
+                        actions.select_default:replace(function()
+                           actions.close(commits_prompt_bufnr)
+                           local commits_selection = action_state.get_selected_entry()
+                           if not commits_selection then return end
+                           local commit_hash = commits_selection.value
+                           vim.schedule(function()
+                              launch_hunk_show(commit_hash)
+                           end)
+                        end)
+                        return true
+                     end,
+                  })
                elseif action == "tele_bcommits" then
-                  require("telescope.builtin").git_bcommits()
+                  require("telescope.builtin").git_bcommits({
+                     attach_mappings = function(bcommits_prompt_bufnr, bcommits_map_cb)
+                        actions.select_default:replace(function()
+                           actions.close(bcommits_prompt_bufnr)
+                           local bcommits_selection = action_state.get_selected_entry()
+                           if not bcommits_selection then return end
+                           local commit_hash = bcommits_selection.value
+                           vim.schedule(function()
+                              launch_hunk_show(commit_hash, current_file)
+                           end)
+                        end)
+                        return true
+                     end,
+                  })
                elseif action == "tele_status" then
                   require("telescope.builtin").git_status()
                elseif action == "codediff_side" then
