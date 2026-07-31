@@ -543,7 +543,7 @@ map("n", "<leader>z", "<cmd>ZenMode<CR>", { desc = "Editor: Toggle Zen Mode" })
 -- ==========================================
 
 local lazygit = nil
-map("n", "<leader>gl", function()
+local function toggle_lazygit()
    if not lazygit then
       local Terminal = require("toggleterm.terminal").Terminal
       lazygit = Terminal:new({
@@ -561,7 +561,8 @@ map("n", "<leader>gl", function()
       })
    end
    lazygit:toggle()
-end, { desc = "Git: Toggle LazyGit Window" })
+end
+map("n", "<leader>gl", toggle_lazygit, { desc = "Git: Toggle LazyGit Window" })
 
 local lazydocker = nil
 map("n", "<leader>dl", function()
@@ -723,16 +724,18 @@ local function open_git_menu()
    local action_state = require("telescope.actions.state")
 
    local items = {
-      { "View Current Diff (Hunk)", "hunk_diff" },
-      { "Compare Branches / Review PR", "compare_branches" },
-      { "View Git Commits (Telescope)", "tele_commits" },
-      { "View Buffer Commits (Telescope)", "tele_bcommits" },
-      { "Git Status & Stage (Telescope)", "tele_status" },
-      { "CodeDiff (Side-by-Side)", "codediff_side" },
-      { "CodeDiff (Inline)", "codediff_inline" },
-      { "File History (CodeDiff)", "codediff_history" },
-      { "Git Branches (Telescope)", "tele_branches" },
-      { "Git Stashes (Telescope)", "tele_stash" },
+      { "1. View Current Diff (Hunk)", "hunk_diff" },
+      { "2. Compare Branches / Review PR", "compare_branches" },
+      { "3. View Git Commits (Telescope)", "tele_commits" },
+      { "4. Git History for Current File (Telescope)", "tele_bcommits" },
+      { "5. Git Status & Stage (Telescope)", "tele_status" },
+      { "6. CodeDiff (Side-by-Side)", "codediff_side" },
+      { "7. CodeDiff (Inline)", "codediff_inline" },
+      { "8. File History (CodeDiff)", "codediff_history" },
+      { "9. Git Branches (Telescope)", "tele_branches" },
+      { "10. Git Stashes (Telescope)", "tele_stash" },
+      { "11. Open LazyGit", "lazygit" },
+      { "12. Open Neogit", "neogit" },
    }
 
    pickers.new({}, {
@@ -776,6 +779,10 @@ local function open_git_menu()
                   require("telescope.builtin").git_branches()
                elseif action == "tele_stash" then
                   require("telescope.builtin").git_stash()
+               elseif action == "lazygit" then
+                  toggle_lazygit()
+               elseif action == "neogit" then
+                  vim.cmd("Neogit")
                end
             end)
          end)
