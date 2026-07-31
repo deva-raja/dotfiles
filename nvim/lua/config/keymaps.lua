@@ -585,28 +585,110 @@ map("n", "<leader>dl", function()
    lazydocker:toggle()
 end, { desc = "Docker: Toggle LazyDocker Window" })
 
-local hunk = nil
-local function toggle_hunk_diff()
-   if not hunk then
-      local Terminal = require("toggleterm.terminal").Terminal
-      hunk = Terminal:new({
-         cmd = "hunk diff",
-         dir = "git_dir",
-         direction = "tab",
-         on_open = function(term)
-            vim.cmd("startinsert!")
-            -- Prevent standard exit terminal mapping from overriding Esc inside hunk
-            vim.api.nvim_buf_set_keymap(term.bufnr, "t", "<Esc>", "<Esc>", { noremap = true, silent = true })
-         end,
-      })
-   end
-   hunk:toggle()
-end
-
 local open_git_menu
 local show_git_commits
 local show_file_commits
 local compare_branches
+local smart_diff_launcher
+
+local function launch_hunk_diff(staged, on_close)
+   local cmd = staged and "hunk diff --staged" or "hunk diff"
+   local Terminal = require("toggleterm.terminal").Terminal
+   local hunk_term = Terminal:new({
+      cmd = cmd,
+      dir = "git_dir",
+      direction = "tab",
+      close_on_exit = true,
+      on_open = function(term)
+         vim.cmd("startinsert!")
+         vim.api.nvim_buf_set_keymap(term.bufnr, "t", "<Esc>", "<Esc>", { noremap = true, silent = true })
+      end,
+      on_close = function(term)
+         if on_close then
+            vim.schedule(on_close)
+         end
+      end,
+   })
+   hunk_term:toggle()
+end
+
+smart_diff_launcher = function(on_close)
+   -- Check for unstaged changes
+   vim.fn.system("git diff --quiet")
+   local has_unstaged = vim.v.shell_error ~= 0
+
+   -- Check for staged changes
+   vim.fn.system("git diff --cached --quiet")
+   local has_staged = vim.v.shell_error ~= 0
+
+   if has_unstaged and has_staged then
+      -- Both unstaged and staged changes exist, open a Telescope picker
+      local pickers = require("telescope.pickers")
+      local finders = require("telescope.finders")
+      local conf = require("telescope.config").values
+      local actions = require("telescope.actions")
+      local action_state = require("telescope.actions.state")
+
+      local diff_options = {
+         { "1. View Unstaged Diff (Hunk)", "unstaged" },
+         { "2. View Staged Diff (Hunk)", "staged" },
+      }
+
+      pickers.new({}, {
+         prompt_title = "Select Diff Area",
+         finder = finders.new_table({
+            results = diff_options,
+            entry_maker = function(entry)
+               return {
+                  value = entry[2],
+                  display = entry[1],
+                  ordinal = entry[1],
+               }
+            end,
+         }),
+         sorter = conf.generic_sorter({}),
+         attach_mappings = function(prompt_bufnr, map_cb)
+            actions.select_default:replace(function()
+               actions.close(prompt_bufnr)
+               local selection = action_state.get_selected_entry()
+               if not selection then return end
+               local choice = selection.value
+
+               vim.schedule(function()
+                  if choice == "unstaged" then
+                     launch_hunk_diff(false, on_close)
+                  elseif choice == "staged" then
+                     launch_hunk_diff(true, on_close)
+                  end
+               end)
+            end)
+
+            local function go_back()
+               actions.close(prompt_bufnr)
+               if on_close then
+                  vim.schedule(on_close)
+               end
+            end
+            map_cb("i", "<Esc>", go_back)
+            map_cb("n", "<Esc>", go_back)
+
+            return true
+         end,
+      }):find()
+   elseif has_unstaged then
+      -- Only unstaged changes exist
+      launch_hunk_diff(false, on_close)
+   elseif has_staged then
+      -- Only staged changes exist
+      launch_hunk_diff(true, on_close)
+   else
+      -- No changes found
+      vim.notify("Git: No changes found.", vim.log.levels.INFO)
+      if on_close then
+         vim.schedule(on_close)
+      end
+   end
+end
 
 local function launch_hunk_show(target, file_path, on_close)
    local cmd = "hunk show"
@@ -873,7 +955,7 @@ open_git_menu = function()
 
             vim.schedule(function()
                if action == "hunk_diff" then
-                  toggle_hunk_diff()
+                  smart_diff_launcher(open_git_menu)
                elseif action == "compare_branches" then
                   compare_branches(open_git_menu)
                elseif action == "tele_commits" then
@@ -934,8 +1016,8 @@ open_git_menu = function()
    }):find()
 end
 
-map("n", "<leader>gj", toggle_hunk_diff, { desc = "Git: Open Hunk Diff Viewer (Tab)" })
-map("n", "<leader>gh", toggle_hunk_diff, { desc = "Git: Open Hunk Diff Viewer (Tab)" })
+map("n", "<leader>gj", smart_diff_launcher, { desc = "Git: Open Hunk Diff Viewer (Tab)" })
+map("n", "<leader>gh", smart_diff_launcher, { desc = "Git: Open Hunk Diff Viewer (Tab)" })
 map("n", "<leader>gb", compare_branches, { desc = "Git: Compare Branches / Review PR" })
 
 map("n", "<leader>gg", open_git_menu, { desc = "Git: Operations & Diffs Menu" })
