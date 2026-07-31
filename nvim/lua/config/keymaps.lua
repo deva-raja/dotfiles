@@ -585,7 +585,7 @@ map("n", "<leader>dl", function()
 end, { desc = "Docker: Toggle LazyDocker Window" })
 
 local hunk = nil
-map("n", "<leader>gj", function()
+local function toggle_hunk_diff()
    if not hunk then
       local Terminal = require("toggleterm.terminal").Terminal
       hunk = Terminal:new({
@@ -600,9 +600,9 @@ map("n", "<leader>gj", function()
       })
    end
    hunk:toggle()
-end, { desc = "Git: Open Hunk Diff Viewer (Tab)" })
+end
 
-map("n", "<leader>gb", function()
+local function compare_branches()
    -- Get all local and remote branch names
    local branches = vim.fn.systemlist("git branch -a --format='%(refname:short)'")
    local clean_branches = {}
@@ -646,7 +646,7 @@ map("n", "<leader>gb", function()
          results = clean_branches,
       }),
       sorter = conf.generic_sorter({}),
-      attach_mappings = function(prompt_bufnr, map)
+      attach_mappings = function(prompt_bufnr, map_cb)
          actions.select_default:replace(function()
             actions.close(prompt_bufnr)
             local selection = action_state.get_selected_entry()
@@ -689,9 +689,7 @@ map("n", "<leader>gb", function()
          return true
       end,
    }):find()
-end, { desc = "Git: Compare Branches / Review PR" })
-
-map("n", "<leader>gg", "<cmd>Neogit<CR>", { desc = "Git: Toggle Neogit Status" })
+end
 
 -- Open CodeDiff in inline mode
 local function open_codediff_inline()
@@ -716,6 +714,82 @@ end
 local function close_codediff()
    vim.cmd("tabclose")
 end
+
+local function open_git_menu()
+   local pickers = require("telescope.pickers")
+   local finders = require("telescope.finders")
+   local conf = require("telescope.config").values
+   local actions = require("telescope.actions")
+   local action_state = require("telescope.actions.state")
+
+   local items = {
+      { "View Current Diff (Hunk)", "hunk_diff" },
+      { "Compare Branches / Review PR", "compare_branches" },
+      { "View Git Commits (Telescope)", "tele_commits" },
+      { "View Buffer Commits (Telescope)", "tele_bcommits" },
+      { "Git Status & Stage (Telescope)", "tele_status" },
+      { "CodeDiff (Side-by-Side)", "codediff_side" },
+      { "CodeDiff (Inline)", "codediff_inline" },
+      { "File History (CodeDiff)", "codediff_history" },
+      { "Git Branches (Telescope)", "tele_branches" },
+      { "Git Stashes (Telescope)", "tele_stash" },
+   }
+
+   pickers.new({}, {
+      prompt_title = "Git Operations & Diffs",
+      finder = finders.new_table({
+         results = items,
+         entry_maker = function(entry)
+            return {
+               value = entry[2],
+               display = entry[1],
+               ordinal = entry[1],
+            }
+         end,
+      }),
+      sorter = conf.generic_sorter({}),
+      attach_mappings = function(prompt_bufnr, map_cb)
+         actions.select_default:replace(function()
+            actions.close(prompt_bufnr)
+            local selection = action_state.get_selected_entry()
+            if not selection then return end
+            local action = selection.value
+
+            vim.schedule(function()
+               if action == "hunk_diff" then
+                  toggle_hunk_diff()
+               elseif action == "compare_branches" then
+                  compare_branches()
+               elseif action == "tele_commits" then
+                  require("telescope.builtin").git_commits()
+               elseif action == "tele_bcommits" then
+                  require("telescope.builtin").git_bcommits()
+               elseif action == "tele_status" then
+                  require("telescope.builtin").git_status()
+               elseif action == "codediff_side" then
+                  open_codediff_side()
+               elseif action == "codediff_inline" then
+                  open_codediff_inline()
+               elseif action == "codediff_history" then
+                  vim.cmd("CodeDiff history")
+               elseif action == "tele_branches" then
+                  require("telescope.builtin").git_branches()
+               elseif action == "tele_stash" then
+                  require("telescope.builtin").git_stash()
+               end
+            end)
+         end)
+         return true
+      end,
+   }):find()
+end
+
+map("n", "<leader>gj", toggle_hunk_diff, { desc = "Git: Open Hunk Diff Viewer (Tab)" })
+map("n", "<leader>gh", toggle_hunk_diff, { desc = "Git: Open Hunk Diff Viewer (Tab)" })
+map("n", "<leader>gb", compare_branches, { desc = "Git: Compare Branches / Review PR" })
+
+map("n", "<leader>gg", open_git_menu, { desc = "Git: Operations & Diffs Menu" })
+map("n", "<leader>gn", "<cmd>Neogit<CR>", { desc = "Git: Toggle Neogit Status" })
 
 map("n", "<leader>gd", open_codediff_inline, { desc = "Git: CodeDiff Open (Inline/Single Window)" })
 map("n", "<leader>gr", open_codediff_side, { desc = "Git: CodeDiff Open (Side-by-Side)" })
