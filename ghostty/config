@@ -27,3 +27,21 @@ keybind = super+]=unbind
 # reusing that byte here would make Cmd+Backspace scroll instead of killing
 # the line. zsh/custom.zsh binds this same F12 sequence to kill-whole-line.
 keybind = super+backspace=text:\x1b[24~
+
+# Treat left Option key as Alt (Meta) for prefix-free multiplexer shortcuts
+macos-option-as-alt = "left"
+
+# Direct Alt-based bindings for Herdr tab switching (sends Ctrl+b followed by command key)
+keybind = alt+1=text:\x021
+keybind = alt+2=text:\x022
+keybind = alt+3=text:\x023
+keybind = alt+4=text:\x024
+keybind = alt+5=text:\x025
+keybind = alt+6=text:\x026
+keybind = alt+8=text:\x02p
+keybind = alt+9=text:\x02n
+keybind = alt+[=text:\x02p
+keybind = alt+]=text:\x02n
+
+
+

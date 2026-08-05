@@ -10,6 +10,7 @@ export EDITOR="nvim"
 alias v="nvim"
 alias p="pnpm"
 alias cc="claude"
+alias hd="herdr"
 
 # Integrate zoxide (smarter cd command)
 if command -v zoxide &> /dev/null; then

@@ -1,3 +1,5 @@
+local use_tmux = false -- Set to true to wrap terminals in tmux, false for direct shell
+
 return {
   {
     'akinsho/toggleterm.nvim',
@@ -21,7 +23,7 @@ return {
       -- while reading. Dedicated terminals with an explicit `cmd` (lazygit,
       -- lazydocker, hunk) set their own `cmd` and are unaffected.
       shell = function()
-        if vim.fn.executable("tmux") == 1 then
+        if use_tmux and vim.fn.executable("tmux") == 1 then
           return "tmux new-session"
         end
         return vim.o.shell

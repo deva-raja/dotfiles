@@ -1,0 +1,33 @@
+[theme]
+name = "nord"
+auto_switch = false
+
+[keys]
+prefix = "ctrl+b"
+
+# Direct Alt-based bindings (no prefix required)
+focus_pane_left = ["prefix+h", "alt+h"]
+focus_pane_down = ["prefix+j", "alt+j"]
+focus_pane_up = ["prefix+k", "alt+k"]
+focus_pane_right = ["prefix+l", "alt+l"]
+
+new_tab = ["prefix+c", "alt+n"]
+close_tab = ["prefix+shift+x", "alt+shift+x"]
+
+split_vertical = ["prefix+v", "alt+v"]
+split_horizontal = ["prefix+minus", "alt+minus"]
+close_pane = ["prefix+x", "alt+w"]
+zoom = ["prefix+z", "alt+z"]
+
+detach = ["prefix+q", "alt+q"]
+goto = ["prefix+g", "alt+;"]
+workspace_picker = ["prefix+w", "alt+s"]
+new_workspace = ["prefix+shift+n", "alt+shift+n"]
+toggle_sidebar = ["prefix+b", "alt+b"]
+edit_scrollback = ["prefix+e", "alt+e"]
+copy_mode = ["prefix+[", "alt+i"]
+
+# Navigate-mode workspaces movement
+navigate_workspace_up = "k"
+navigate_workspace_down = "j"
+

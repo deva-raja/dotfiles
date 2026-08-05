@@ -511,16 +511,6 @@ vim.api.nvim_create_autocmd("TermOpen", {
          end
       end, vim.tbl_extend("force", opts, { desc = "Terminal: Send Shift+Enter (newline) to job [fallback]" }))
 
-      -- Ctrl+U in terminal-normal mode: re-enter terminal mode and forward to tmux so the
-      -- root-level `bind-key -n C-u copy-mode \; halfpage-up` fires. Without this, Ctrl+U
-      -- in normal mode only scrolls neovim's terminal buffer, which is limited to the
-      -- current tmux screen — not the full 50k-line tmux scrollback.
-      map("n", "<C-u>", function()
-         vim.cmd("startinsert")
-         vim.schedule(function()
-            vim.fn.feedkeys("\x15", "t")
-         end)
-      end, vim.tbl_extend("force", opts, { desc = "Terminal: Scroll Up (tmux copy-mode)" }))
    end,
 })
 
@@ -1236,3 +1226,5 @@ local letters = { "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m
 for _, char in ipairs(letters) do
    map("i", "<A-" .. char .. ">", "<Nop>", { desc = "Disable Alt modifier in insert mode" })
 end
+
+

@@ -16,6 +16,7 @@ stow_package() {
     ghostty) indicator="config" ;;
     yazi) indicator="yazi.toml" ;;
     hunk) indicator="config.toml" ;;
+    herdr) indicator="config.toml" ;;
     tmux) indicator=".tmux.conf" ;;
   esac
 
@@ -89,6 +90,11 @@ fi
 # 5.5. Hunk Config Symlinking
 if ask_yes_no "Do you want to install/symlink the Hunk configuration?"; then
   stow_package "hunk" "$HOME/.config/hunk"
+fi
+
+# 5.5.5. Herdr Config Symlinking
+if ask_yes_no "Do you want to install/symlink the Herdr configuration?"; then
+  stow_package "herdr" "$HOME/.config/herdr"
 fi
 
 # 5.6. Tmux Config Symlinking (invisible scroll-freeze wrapper for terminal buffers)
