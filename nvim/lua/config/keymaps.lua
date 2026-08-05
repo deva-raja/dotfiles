@@ -602,8 +602,17 @@ local function launch_hunk_diff(staged, on_close)
       on_open = function(term)
          vim.cmd("startinsert!")
          vim.api.nvim_buf_set_keymap(term.bufnr, "t", "<Esc>", "<Esc>", { noremap = true, silent = true })
+         vim.keymap.set("t", "<S-Esc>", function()
+            term.force_quit = true
+            term:close()
+         end, { buffer = term.bufnr, silent = true })
+         vim.keymap.set("t", "Q", function()
+            term.force_quit = true
+            term:close()
+         end, { buffer = term.bufnr, silent = true })
       end,
       on_close = function(term)
+         if term.force_quit then return end
          if on_close then
             vim.schedule(on_close)
          end
@@ -672,6 +681,13 @@ smart_diff_launcher = function(on_close)
             map_cb("i", "<Esc>", go_back)
             map_cb("n", "<Esc>", go_back)
 
+            local function force_quit()
+               actions.close(prompt_bufnr)
+            end
+            map_cb("i", "<S-Esc>", force_quit)
+            map_cb("n", "<S-Esc>", force_quit)
+            map_cb("n", "Q", force_quit)
+
             return true
          end,
       }):find()
@@ -707,8 +723,17 @@ local function launch_hunk_show(target, file_path, on_close)
       on_open = function(term)
          vim.cmd("startinsert!")
          vim.api.nvim_buf_set_keymap(term.bufnr, "t", "<Esc>", "<Esc>", { noremap = true, silent = true })
+         vim.keymap.set("t", "<S-Esc>", function()
+            term.force_quit = true
+            term:close()
+         end, { buffer = term.bufnr, silent = true })
+         vim.keymap.set("t", "Q", function()
+            term.force_quit = true
+            term:close()
+         end, { buffer = term.bufnr, silent = true })
       end,
       on_close = function(term)
+         if term.force_quit then return end
          if on_close then
             vim.schedule(on_close)
          end
@@ -782,8 +807,17 @@ compare_branches = function(on_close)
                   on_open = function(term)
                      vim.cmd("startinsert!")
                      vim.api.nvim_buf_set_keymap(term.bufnr, "t", "<Esc>", "<Esc>", { noremap = true, silent = true })
+                     vim.keymap.set("t", "<S-Esc>", function()
+                        term.force_quit = true
+                        term:close()
+                     end, { buffer = term.bufnr, silent = true })
+                     vim.keymap.set("t", "Q", function()
+                        term.force_quit = true
+                        term:close()
+                     end, { buffer = term.bufnr, silent = true })
                   end,
                   on_close = function(term)
+                     if term.force_quit then return end
                      vim.schedule(function()
                         compare_branches(on_close)
                      end)
@@ -820,6 +854,13 @@ compare_branches = function(on_close)
          end
          map_cb("i", "<Esc>", go_back)
          map_cb("n", "<Esc>", go_back)
+
+         local function force_quit()
+            actions.close(prompt_bufnr)
+         end
+         map_cb("i", "<S-Esc>", force_quit)
+         map_cb("n", "<S-Esc>", force_quit)
+         map_cb("n", "Q", force_quit)
 
          return true
       end,
@@ -872,6 +913,13 @@ show_git_commits = function()
          end
          commits_map_cb("i", "<Esc>", go_back)
          commits_map_cb("n", "<Esc>", go_back)
+
+         local function force_quit()
+            actions.close(commits_prompt_bufnr)
+         end
+         commits_map_cb("i", "<S-Esc>", force_quit)
+         commits_map_cb("n", "<S-Esc>", force_quit)
+         commits_map_cb("n", "Q", force_quit)
          return true
       end,
    })
@@ -901,6 +949,13 @@ show_file_commits = function(current_file)
          end
          bcommits_map_cb("i", "<Esc>", go_back)
          bcommits_map_cb("n", "<Esc>", go_back)
+
+         local function force_quit()
+            actions.close(bcommits_prompt_bufnr)
+         end
+         bcommits_map_cb("i", "<S-Esc>", force_quit)
+         bcommits_map_cb("n", "<S-Esc>", force_quit)
+         bcommits_map_cb("n", "Q", force_quit)
          return true
       end,
    })
@@ -971,6 +1026,13 @@ open_git_menu = function()
                         end
                         status_map_cb("i", "<Esc>", go_back)
                         status_map_cb("n", "<Esc>", go_back)
+
+                        local function force_quit()
+                           actions.close(status_prompt_bufnr)
+                        end
+                        status_map_cb("i", "<S-Esc>", force_quit)
+                        status_map_cb("n", "<S-Esc>", force_quit)
+                        status_map_cb("n", "Q", force_quit)
                         return true
                      end,
                   })
@@ -989,6 +1051,13 @@ open_git_menu = function()
                         end
                         branches_map_cb("i", "<Esc>", go_back)
                         branches_map_cb("n", "<Esc>", go_back)
+
+                        local function force_quit()
+                           actions.close(branches_prompt_bufnr)
+                        end
+                        branches_map_cb("i", "<S-Esc>", force_quit)
+                        branches_map_cb("n", "<S-Esc>", force_quit)
+                        branches_map_cb("n", "Q", force_quit)
                         return true
                      end,
                   })
@@ -1001,6 +1070,13 @@ open_git_menu = function()
                         end
                         stash_map_cb("i", "<Esc>", go_back)
                         stash_map_cb("n", "<Esc>", go_back)
+
+                        local function force_quit()
+                           actions.close(stash_prompt_bufnr)
+                        end
+                        stash_map_cb("i", "<S-Esc>", force_quit)
+                        stash_map_cb("n", "<S-Esc>", force_quit)
+                        stash_map_cb("n", "Q", force_quit)
                         return true
                      end,
                   })
@@ -1011,6 +1087,13 @@ open_git_menu = function()
                end
             end)
          end)
+
+         local function force_quit()
+            actions.close(prompt_bufnr)
+         end
+         map_cb("i", "<S-Esc>", force_quit)
+         map_cb("n", "<S-Esc>", force_quit)
+         map_cb("n", "Q", force_quit)
          return true
       end,
    }):find()
