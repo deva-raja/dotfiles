@@ -514,8 +514,40 @@ vim.api.nvim_create_autocmd("TermOpen", {
    end,
 })
 
--- Esc in terminal mode to return to normal mode inside ToggleTerm (global fallback/helper)
-map("t", "<Esc>", [[<C-\><C-n>]], { desc = "Terminal: Exit Terminal Mode" })
+-- Helper to detect if Herdr is active in the terminal's process group
+local function is_herdr_active()
+   local title = vim.b.term_title or ""
+   if string.find(title, "herdr") or string.find(title, "hd") then
+      return true
+   end
+   
+   local job_id = vim.b.terminal_job_id
+   if not job_id then return false end
+   local pid = vim.fn.jobpid(job_id)
+   if not pid then return false end
+   
+   local handle = io.popen("ps -o comm= -g " .. pid)
+   if handle then
+      local result = handle:read("*a")
+      handle:close()
+      if result and (string.find(result, "herdr") or string.find(result, "hd")) then
+         return true
+      end
+   end
+   return false
+end
+
+-- Esc: enter copy mode if in Herdr; exit terminal mode otherwise
+map("t", "<Esc>", function()
+   if is_herdr_active() then
+      vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<A-i>", true, true, true), "t", false)
+   else
+      vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<C-\\><C-n>", true, true, true), "n", false)
+   end
+end, { desc = "Terminal: Context-aware Escape handling" })
+
+-- Alt+Esc (Option+Escape): Force exit terminal mode to normal mode
+map("t", "<A-Esc>", [[<C-\><C-n>]], { desc = "Terminal: Force Exit Terminal Mode" })
 map("t", "<C-Esc>", "<Esc>", { desc = "Terminal: Send Esc to Terminal" })
 
 
