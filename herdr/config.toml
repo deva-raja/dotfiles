@@ -23,7 +23,7 @@ detach = ["prefix+q", "alt+q"]
 goto = ["prefix+g", "alt+;"]
 workspace_picker = ["prefix+w", "alt+s"]
 new_workspace = ["prefix+shift+n", "alt+shift+n"]
-toggle_sidebar = ["prefix+b", "alt+b"]
+toggle_sidebar = ["prefix+b", "alt+b", "alt+\\"]
 edit_scrollback = ["prefix+e", "alt+e"]
 copy_mode = ["prefix+[", "alt+i"]
 
