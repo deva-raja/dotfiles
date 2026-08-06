@@ -133,8 +133,6 @@ map("n", "<leader>h", "<C-w>h", { desc = "Window: Focus Left Window" })
 map("n", "<leader>l", "<C-w>l", { desc = "Window: Focus Right Window" })
 map("n", "<C-h>", "<C-w>h", { desc = "Window: Focus Left Window" })
 map("n", "<C-l>", "<C-w>l", { desc = "Window: Focus Right Window" })
-map("n", "<D-h>", "<C-w>h", { desc = "Window: Focus Left Window" })
-map("n", "<D-l>", "<C-w>l", { desc = "Window: Focus Right Window" })
 
 -- Vertical window movement mappings (<leader>j/k and <C-j/k>)
 map("n", "<leader>k", "<C-w>k", { desc = "Window: Focus Top Window" })

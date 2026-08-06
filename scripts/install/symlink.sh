@@ -17,7 +17,6 @@ stow_package() {
     yazi) indicator="yazi.toml" ;;
     hunk) indicator="config.toml" ;;
     herdr) indicator="config.toml" ;;
-    tmux) indicator=".tmux.conf" ;;
   esac
 
   local indicator_path="${target_path}/${indicator}"
@@ -97,35 +96,3 @@ if ask_yes_no "Do you want to install/symlink the Herdr configuration?"; then
   stow_package "herdr" "$HOME/.config/herdr"
 fi
 
-# 5.6. Tmux Config Symlinking (invisible scroll-freeze wrapper for terminal buffers)
-# Note: uses dedicated file-scoped logic instead of stow_package, since the
-# target here is $HOME itself (shared with everything else) rather than a
-# package-private directory - stow_package's backup path does `mv
-# "$target_path" ...` on conflict, which would be catastrophic against $HOME.
-if ask_yes_no "Do you want to install/symlink the tmux configuration?"; then
-  TMUX_CONF="$HOME/.tmux.conf"
-  if [ -L "$TMUX_CONF" ] && [ "$TMUX_CONF" -ef "$DOTFILES_DIR/tmux/.tmux.conf" ]; then
-    success "tmux configuration is already correctly symlinked!"
-  else
-    if [ -e "$TMUX_CONF" ] || [ -L "$TMUX_CONF" ]; then
-      warn "Existing tmux configuration found at $TMUX_CONF."
-      if ask_yes_no "Back up current configuration and replace it with dotfiles version?"; then
-        backup_path="${TMUX_CONF}${BACKUP_SUFFIX}"
-        mv "$TMUX_CONF" "$backup_path"
-        info "Backed up existing config to $backup_path"
-      else
-        info "Skipping tmux configuration."
-      fi
-    fi
-
-    if [ ! -e "$TMUX_CONF" ] && [ ! -L "$TMUX_CONF" ]; then
-      if ! command -v stow &> /dev/null; then
-        error "stow command not found! Please install GNU Stow, or allow the script to install dependencies."
-      elif stow -d "$DOTFILES_DIR" -t "$HOME" tmux; then
-        success "Symlinked tmux configuration using Stow!"
-      else
-        error "Failed to symlink tmux using Stow."
-      fi
-    fi
-  fi
-fi

@@ -10,9 +10,9 @@ keybind = super+9=unbind
 keybind = super+digit_8=unbind
 keybind = super+digit_9=unbind
 keybind = super+j=unbind
-keybind = super+h=unbind
+keybind = super+h=text:\x1bs
 keybind = super+k=unbind
-keybind = super+l=unbind
+keybind = super+l=text:\r
 # Command + Shift + [ and Command + Shift + ] are reserved by macOS for native tab
 # switching (Window > Show Previous/Next Tab) and can't be unbound at the app level,
 # so leave them as Ghostty's default tab switching.
@@ -22,11 +22,8 @@ keybind = super+[=unbind
 keybind = super+]=unbind
 
 # Command + Backspace: kill whole line in shell (overrides Ghostty's default scroll-to-top).
-# Sends F12's CSI code rather than a literal Ctrl-U (\x15), since tmux's root
-# keytable now claims plain Ctrl-U for the scroll-freeze copy-mode trigger -
-# reusing that byte here would make Cmd+Backspace scroll instead of killing
-# the line. zsh/custom.zsh binds this same F12 sequence to kill-whole-line.
-keybind = super+backspace=text:\x1b[24~
+# Sends a literal Ctrl-U (\x15) to clear the line natively in shell and terminal prompts.
+keybind = super+backspace=text:\x15
 
 # Treat left Option key as Alt (Meta) for prefix-free multiplexer shortcuts
 macos-option-as-alt = "left"

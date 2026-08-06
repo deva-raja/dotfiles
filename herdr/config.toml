@@ -1,3 +1,4 @@
+onboarding = false
 [theme]
 name = "nord"
 auto_switch = false
@@ -11,7 +12,7 @@ focus_pane_down = ["prefix+j", "alt+j"]
 focus_pane_up = ["prefix+k", "alt+k"]
 focus_pane_right = ["prefix+l", "alt+l"]
 
-new_tab = ["prefix+c", "alt+n"]
+new_tab = ["prefix+c", "alt+n", "alt+t"]
 close_tab = ["prefix+shift+x", "alt+shift+x"]
 
 split_vertical = ["prefix+v", "alt+v"]
@@ -23,6 +24,7 @@ detach = ["prefix+q", "alt+q"]
 goto = ["prefix+g", "alt+;"]
 workspace_picker = ["prefix+w", "alt+s"]
 new_workspace = ["prefix+shift+n", "alt+shift+n"]
+close_workspace = ["prefix+shift+d", "alt+shift+d"]
 toggle_sidebar = ["prefix+b", "alt+b", "alt+\\"]
 edit_scrollback = ["prefix+e", "alt+e"]
 copy_mode = ["prefix+[", "alt+i"]
@@ -39,4 +41,3 @@ navigate_workspace_down = "j"
 key = "alt+shift+q"
 type = "shell"
 command = "herdr server stop"
-

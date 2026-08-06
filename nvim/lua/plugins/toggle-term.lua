@@ -1,5 +1,3 @@
-local use_tmux = false -- Set to true to wrap terminals in tmux, false for direct shell
-
 return {
   {
     'akinsho/toggleterm.nvim',
@@ -13,20 +11,6 @@ return {
         elseif term.direction == "vertical" then
           return vim.o.columns * 0.4
         end
-      end,
-      -- Launch default (shell-only) terminals inside tmux. `tmux new-session`
-      -- with no name gets a unique auto-numbered session per terminal, so
-      -- multiple ToggleTerm instances never collide. This gives every plain
-      -- terminal a real decoupled scrollback (tmux copy-mode, bound to the
-      -- same Ctrl-U/j/k/gg/G keys) so long-running TUIs like Claude Code
-      -- that redraw their footer in place stop yanking the view back down
-      -- while reading. Dedicated terminals with an explicit `cmd` (lazygit,
-      -- lazydocker, hunk) set their own `cmd` and are unaffected.
-      shell = function()
-        if use_tmux and vim.fn.executable("tmux") == 1 then
-          return "tmux new-session"
-        end
-        return vim.o.shell
       end,
     },
     config = function(_, opts)

@@ -13,7 +13,6 @@ return {
       },
       plugins = {
         gitsigns = { enabled = true },
-        tmux = { enabled = false },
         twilight = { enabled = false },
       },
     },
