@@ -40,3 +40,7 @@ opt.timeoutlen = 300     -- Time in ms to wait for a mapped sequence to complete
 
 -- Disable terminal flow control (prevents Ctrl+S from freezing terminal input)
 vim.cmd('silent !stty -ixon')
+
+-- Enable auto-reading of files changed outside of Neovim (non-destructive)
+opt.autoread = true
+

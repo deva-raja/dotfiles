@@ -39,3 +39,15 @@ vim.api.nvim_create_autocmd("ColorScheme", {
     vim.api.nvim_set_hl(0, "@markup.link.label.markdown_inline", { fg = "#6e6a86" })
   end,
 })
+
+-- Automatically reload files changed on disk (non-destructive)
+local autoreload_group = vim.api.nvim_create_augroup("AutoReload", { clear = true })
+vim.api.nvim_create_autocmd({ "FocusGained", "BufEnter", "CursorHold", "CursorHoldI" }, {
+  group = autoreload_group,
+  callback = function()
+    if vim.fn.getcmdwintype() == "" then
+      vim.cmd("checktime")
+    end
+  end,
+})
+
