@@ -37,6 +37,10 @@ fi
 # Note: Zsh-autosuggestions plugin must be loaded first (e.g. by Oh My Zsh)
 bindkey '^ ' forward-word
 
+# Word-by-word navigation with Option + Left/Right Arrow (Alt + Left/Right Arrow) in Ghostty
+bindkey "^[[1;3D" backward-word
+bindkey "^[[1;3C" forward-word
+
 
 # Yazi wrapper function to change directory on exit
 function yf() {

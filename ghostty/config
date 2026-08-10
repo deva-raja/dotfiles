@@ -28,6 +28,10 @@ keybind = super+backspace=text:\x15
 # Treat left Option key as Alt (Meta) for prefix-free multiplexer shortcuts
 macos-option-as-alt = "left"
 
+# Unbind Alt+Left and Alt+Right so they don't map to alt+b/alt+f and conflict with herder sidebar
+keybind = alt+left=unbind
+keybind = alt+right=unbind
+
 # Direct Alt-based bindings for Herdr tab switching (sends Ctrl+b followed by command key)
 keybind = alt+1=text:\x021
 keybind = alt+2=text:\x022
