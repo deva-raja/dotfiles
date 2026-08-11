@@ -44,3 +44,6 @@ vim.cmd('silent !stty -ixon')
 -- Enable auto-reading of files changed outside of Neovim (non-destructive)
 opt.autoread = true
 
+-- Session options: do not save or restore terminal buffers/windows across sessions
+opt.sessionoptions = { "buffers", "curdir", "folds", "help", "tabpages", "winsize", "winpos" }
+

@@ -51,3 +51,17 @@ vim.api.nvim_create_autocmd({ "FocusGained", "BufEnter", "CursorHold", "CursorHo
   end,
 })
 
+-- Ensure ToggleTerm terminal splits remain hidden when restoring sessions
+vim.api.nvim_create_autocmd("SessionLoadPost", {
+  group = vim.api.nvim_create_augroup("HideToggleTermOnSessionLoad", { clear = true }),
+  callback = function()
+    local ok, term_module = pcall(require, "toggleterm.terminal")
+    if not ok then return end
+    for _, term in ipairs(term_module.get_all(true)) do
+      if term:is_open() then
+        term:close()
+      end
+    end
+  end,
+})
+

@@ -7,7 +7,8 @@ return {
   ---@type AutoSession.Config
   opts = {
     suppressed_dirs = { "~/", "~/Projects", "~/Downloads", "/" },
-    pre_save_cmds = { "Neotree close" },
+    pre_save_cmds = { "Neotree close", "ToggleTermToggleAll" },
     -- log_level = 'debug',
   },
 }
+
