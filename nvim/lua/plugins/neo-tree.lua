@@ -10,6 +10,11 @@ return {
     lazy = false, -- neo-tree will lazily load itself
     opts = {
       filesystem = {
+        follow_current_file = {
+          enabled = true,
+          leave_dirs_open = false,
+        },
+        use_libuv_file_watcher = true,
         hijack_netrw_behavior = "disabled",
       },
       window = {
