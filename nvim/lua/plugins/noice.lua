@@ -8,9 +8,26 @@ return {
     },
     opts = {
       lsp = {
+        progress = {
+          enabled = true,
+        },
         override = {
           ["vim.lsp.util.convert_input_to_markdown_lines"] = true,
           ["vim.lsp.util.stylize_markdown"] = true,
+        },
+      },
+      routes = {
+        {
+          filter = {
+            event = "lsp",
+            kind = "progress",
+            any = {
+              { find = "pyright" },
+              { find = "Pyright" },
+              { find = "pylsp" },
+            },
+          },
+          opts = { skip = true },
         },
       },
       presets = {
