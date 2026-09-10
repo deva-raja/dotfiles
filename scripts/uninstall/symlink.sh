@@ -10,6 +10,8 @@ unstow_package() {
     ghostty) indicator="config" ;;
     yazi) indicator="yazi.toml" ;;
     hunk) indicator="config.toml" ;;
+    herdr) indicator="config.toml" ;;
+    worktrunk) indicator="config.toml" ;;
   esac
 
   local indicator_path="${target_path}/${indicator}"
@@ -60,3 +62,9 @@ unstow_package "yazi" "$HOME/.config/yazi"
 
 # 3.7. Hunk Config Removal & Backup Restore
 unstow_package "hunk" "$HOME/.config/hunk"
+
+# 3.8. Herdr Config Removal & Backup Restore
+unstow_package "herdr" "$HOME/.config/herdr"
+
+# 3.9. Worktrunk Config Removal & Backup Restore
+unstow_package "worktrunk" "$HOME/.config/worktrunk"
