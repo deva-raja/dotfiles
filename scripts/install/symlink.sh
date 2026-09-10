@@ -17,6 +17,7 @@ stow_package() {
     yazi) indicator="yazi.toml" ;;
     hunk) indicator="config.toml" ;;
     herdr) indicator="config.toml" ;;
+    worktrunk) indicator="config.toml" ;;
   esac
 
   local indicator_path="${target_path}/${indicator}"
@@ -94,5 +95,10 @@ fi
 # 5.5.5. Herdr Config Symlinking
 if ask_yes_no "Do you want to install/symlink the Herdr configuration?"; then
   stow_package "herdr" "$HOME/.config/herdr"
+fi
+
+# 5.5.6. Worktrunk Config Symlinking
+if ask_yes_no "Do you want to install/symlink the Worktrunk configuration?"; then
+  stow_package "worktrunk" "$HOME/.config/worktrunk"
 fi
 

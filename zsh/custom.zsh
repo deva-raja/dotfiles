@@ -78,3 +78,27 @@ freeport() {
   fi
 }
 alias free=freeport
+
+# Read last AI assistant reply (Claude Code or Antigravity) in the current terminal, or any markdown file
+read() {
+  # If standard builtin options (e.g. -r, -p, -k, -q, -u, -t, -A, -d, etc.) are passed
+  if [[ "$1" =~ ^(-r|-p|-k|-q|-u|-t|-A|-d|-e|-E|-z)$ ]]; then
+    builtin read "$@"
+    return $?
+  fi
+
+  # Piped input (e.g. echo "x" | read var) when not a file or custom flags
+  if [[ ! -t 0 ]] && [[ $# -gt 0 ]] && [[ ! -f "$1" ]] && [[ ! "$1" =~ ^(-a|--agent|-n|--last|-o|--offset|-h|-H|-s|--history|--help)$ ]]; then
+    builtin read "$@"
+    return $?
+  fi
+
+  # Assistant keywords, numbers (offsets), files, history flags, or zero arguments
+  if [[ $# -eq 0 ]] || [[ -f "$1" ]] || [[ "$1" =~ ^(-a|--agent|-n|--last|-o|--offset|-h|-H|-s|--history|--sessions|--help|agy|antigravity|gemini|cc|claude|claude-code|[0-9]+)$ ]]; then
+    "$HOME/.claude/scripts/read-cli.sh" "$@"
+    return $?
+  fi
+
+  # Fallback to standard builtin read (e.g. read myvar)
+  builtin read "$@"
+}
