@@ -2,11 +2,20 @@
 command = "MAX_THINKING_TOKENS=0 claude -p --no-session-persistence --model=haiku --tools='' --safe-mode --setting-sources='user' --system-prompt=''"
 
 [aliases]
+# List worktrees
+l = "wt list {{ args }}"
+
 # Switch to an existing branch or open the interactive picker
 s = "wt switch {{ args }}"
 
 # Create a new branch and worktree off current HEAD (@ by default, or specified -b/--base)
 sc = "wt switch -c {% if '-b' in args or '--base' in args %}{{ args }}{% else %}{{ args }} -b @{% endif %}"
+
+# Remove worktree but keep the branch
+r = "wt remove --no-delete-branch {{ args }}"
+
+# Remove both worktree and branch
+rb = "wt remove -D {{ args }}"
 
 [post-start]
 # Eliminate cold starts across all projects by copying gitignored files (.env, caches, node_modules) via APFS reflink

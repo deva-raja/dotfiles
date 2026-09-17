@@ -5,6 +5,15 @@
 # Ensure local bin directories are in PATH
 export PATH="$HOME/.local/bin:$HOME/bin:$HOME/go/bin:$PATH"
 
+# Raise per-shell resource limits for large monorepo dev servers (Next.js/Turbopack + pnpm workspaces).
+# ulimit -n: macOS defaults to 256 open files, which Turbopack/webpack watchers blow past on big
+#   node_modules trees (EMFILE), triggering a dev-server compiler restart loop.
+# ulimit -u: caps total processes this account can own, so if a restart loop ever happens anyway
+#   (e.g. racing a worktrunk post-start `pnpm install`), it fails fast with "fork: Resource
+#   temporarily unavailable" instead of exhausting the system process table and freezing the machine.
+ulimit -n 16384
+ulimit -u 400
+
 # Quick editor opens & aliases
 export EDITOR="nvim"
 alias v="nvim"

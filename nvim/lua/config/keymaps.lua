@@ -231,12 +231,50 @@ map("n", "<leader>bt", function() require("bookmarks").toggle_bookmarks() end,
 -- Minimap
 map("n", "<leader>m", function() require("mini.map").toggle() end, { desc = "Minimap: Toggle" })
 
--- Markdown rendering
+-- Markdown rendering & reading
 local is_minimal = vim.fn.exists('$SSH_CONNECTION') == 1 or
 vim.fn.filereadable(vim.fn.stdpath('config') .. '/.minimal') == 1
 if not is_minimal then
    map("n", "<leader>rm", "<cmd>RenderMarkdown toggle<CR>", { desc = "Markdown: Toggle Rendering Preview" })
 end
+
+map("n", "<leader>rd", function()
+   local in_herdr = (vim.env.HERDR_ENV == "1" or (vim.env.HERDR_TAB_ID and vim.env.HERDR_TAB_ID ~= "")) and vim.fn.executable("herdr") == 1
+   if not in_herdr then
+      vim.notify("not in herdr", vim.log.levels.ERROR)
+      return
+   end
+
+   local file = vim.api.nvim_buf_get_name(0)
+   if file == "" then
+      vim.notify("No active file", vim.log.levels.WARN)
+      return
+   end
+
+   if not file:match("%.md$") and vim.bo.filetype ~= "markdown" then
+      vim.notify("Current file is not a markdown file (.md)", vim.log.levels.WARN)
+      return
+   end
+
+   if vim.bo.modified then
+      vim.cmd("silent! write")
+   end
+
+   local script = vim.fn.expand("~/.claude/scripts/open-plan-reader-tab.sh")
+   if vim.fn.filereadable(script) == 0 then
+      vim.notify("Reader script not found: " .. script, vim.log.levels.ERROR)
+      return
+   end
+
+   vim.system({ "bash", script, file, "read" }, {}, function(res)
+      if res.code ~= 0 then
+         vim.schedule(function()
+            local err = (res.stderr and res.stderr ~= "") and res.stderr or ("Exited with code " .. res.code)
+            vim.notify("Failed to open read tab: " .. err, vim.log.levels.ERROR)
+         end)
+      end
+   end)
+end, { desc = "Markdown: Read in Next Herdr Tab (read)" })
 
 
 -- ==========================================
