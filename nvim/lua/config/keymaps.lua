@@ -260,13 +260,16 @@ map("n", "<leader>rd", function()
       vim.cmd("silent! write")
    end
 
-   local script = vim.fn.expand("~/.claude/scripts/open-plan-reader-tab.sh")
+   local script = vim.fn.stdpath("config") .. "/scripts/open-reader-tab.sh"
+   if vim.fn.filereadable(script) == 0 then
+      script = vim.fn.expand("~/dotfiles/nvim/scripts/open-reader-tab.sh")
+   end
    if vim.fn.filereadable(script) == 0 then
       vim.notify("Reader script not found: " .. script, vim.log.levels.ERROR)
       return
    end
 
-   vim.system({ "bash", script, file, "read" }, {}, function(res)
+   vim.system({ "bash", script, file }, {}, function(res)
       if res.code ~= 0 then
          vim.schedule(function()
             local err = (res.stderr and res.stderr ~= "") and res.stderr or ("Exited with code " .. res.code)
