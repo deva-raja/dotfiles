@@ -1,20 +1,24 @@
 #!/usr/bin/env bash
 # Markdown terminal reader for Neovim (Space + r + d)
-# Renders markdown using glow and less, with in-place 'r' refresh and centered layout.
+# Renders markdown using glow and less, with in-place 'r' refresh, centered layout, and position retention.
 set -euo pipefail
 
 file="${1:?usage: markdown-reader.sh <markdown-file>}"
 
 rendered="$(mktemp -t nvim-read-rendered)"
 keyfile="$(mktemp -t nvim-read-lesskey)"
-trap 'rm -f "$rendered" "${rendered}.tmp" "$keyfile"' EXIT
+hstfile="$(mktemp -t nvim-read-lesshst)"
+trap 'rm -f "$rendered" "${rendered}.tmp" "$keyfile" "$hstfile"' EXIT
 
-# Map 'r' and 'R' to reload (exit less with status 82 'R')
+# Map 'r' and 'R' to record position at mark 'a' and exit with status 82 ('R')
 cat << 'KEYEOF' > "$keyfile"
 #command
-r quit R
-R quit R
+\035 quit R
+r set-mark a\035
+R set-mark a\035
 KEYEOF
+
+export LESSHISTFILE="$hstfile"
 
 get_cols() {
   local c
@@ -76,16 +80,31 @@ render_doc() {
   while read -r -t 0.05 -n 1 -s _ < /dev/tty 2>/dev/null; do :; done
 }
 
+extra_args=()
+
 while true; do
   render_doc
 
   set +e
-  less -R -~ -P ' ' --lesskey-src="$keyfile" "$rendered"
+  if [ "${#extra_args[@]}" -gt 0 ]; then
+    less -R -~ -P ' ' --save-marks --lesskey-src="$keyfile" "${extra_args[@]}" "$rendered"
+  else
+    less -R -~ -P ' ' --save-marks --lesskey-src="$keyfile" "$rendered"
+  fi
   rc=$?
   set -e
 
   # If exited via 'r' or 'R' (code 82), loop and re-render
   if [ "$rc" -eq 82 ]; then
+    if [ -f "$hstfile" ]; then
+      offset="$(awk '$1=="m" && $2=="a" {print $4}' "$hstfile" 2>/dev/null | tail -1)"
+      filesize="$(wc -c < "$rendered" 2>/dev/null || echo 0)"
+      if [ -n "$offset" ] && [ "$offset" -lt "$filesize" ]; then
+        extra_args=(+"'a")
+      else
+        extra_args=(+G)
+      fi
+    fi
     continue
   fi
 

@@ -12,7 +12,7 @@ export PATH="$HOME/.local/bin:$HOME/bin:$HOME/go/bin:$PATH"
 #   (e.g. racing a worktrunk post-start `pnpm install`), it fails fast with "fork: Resource
 #   temporarily unavailable" instead of exhausting the system process table and freezing the machine.
 ulimit -n 16384
-ulimit -u 400
+ulimit -u 1024
 
 # Quick editor opens & aliases
 export EDITOR="nvim"
