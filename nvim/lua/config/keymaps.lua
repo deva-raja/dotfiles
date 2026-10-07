@@ -650,7 +650,41 @@ local open_git_menu
 local show_git_commits
 local show_file_commits
 local compare_branches
+local compare_branches_lumen
 local smart_diff_launcher
+
+local function launch_lumen_diff(target, on_close)
+   local cmd = "lumen diff"
+   if target and target ~= "" then
+      cmd = cmd .. " " .. target
+   end
+   local Terminal = require("toggleterm.terminal").Terminal
+   local lumen_term = Terminal:new({
+      cmd = cmd,
+      dir = "git_dir",
+      direction = "tab",
+      close_on_exit = true,
+      on_open = function(term)
+         vim.cmd("startinsert!")
+         vim.api.nvim_buf_set_keymap(term.bufnr, "t", "<Esc>", "<Esc>", { noremap = true, silent = true })
+         vim.keymap.set("t", "<S-Esc>", function()
+            term.force_quit = true
+            term:close()
+         end, { buffer = term.bufnr, silent = true })
+         vim.keymap.set("t", "Q", function()
+            term.force_quit = true
+            term:close()
+         end, { buffer = term.bufnr, silent = true })
+      end,
+      on_close = function(term)
+         if term.force_quit then return end
+         if on_close then
+            vim.schedule(on_close)
+         end
+      end,
+   })
+   lumen_term:toggle()
+end
 
 local function launch_hunk_diff(staged, on_close)
    local cmd = staged and "hunk diff --staged" or "hunk diff"
@@ -928,6 +962,108 @@ compare_branches = function(on_close)
    }):find()
 end
 
+compare_branches_lumen = function(on_close)
+   -- Get all local and remote branch names
+   local branches = vim.fn.systemlist("git branch -a --format='%(refname:short)'")
+   local clean_branches = {}
+   for _, branch in ipairs(branches) do
+      if branch ~= "" and branch ~= "origin" then
+         if not branch:match("/HEAD$") then
+            table.insert(clean_branches, branch)
+         end
+      end
+   end
+
+   -- Prioritize origin/main at the top of the list if it exists
+   local default_branch = "origin/main"
+   local found_idx = nil
+   for i, b in ipairs(clean_branches) do
+      if b == default_branch then
+         found_idx = i
+         break
+      end
+   end
+   if found_idx then
+      table.remove(clean_branches, found_idx)
+      table.insert(clean_branches, 1, default_branch)
+   end
+
+   -- Add helper choices
+   table.insert(clean_branches, 1, "Enter Custom Ref / Branch / PR URL...")
+   table.insert(clean_branches, 1, "Working Tree (Local Changes)")
+
+   -- Load Telescope dependencies
+   local pickers = require("telescope.pickers")
+   local finders = require("telescope.finders")
+   local conf = require("telescope.config").values
+   local actions = require("telescope.actions")
+   local action_state = require("telescope.actions.state")
+
+   -- Launch Telescope picker
+   pickers.new({}, {
+      prompt_title = "Lumen: Select branch / ref to diff against",
+      finder = finders.new_table({
+         results = clean_branches,
+      }),
+      sorter = conf.generic_sorter({}),
+      attach_mappings = function(prompt_bufnr, map_cb)
+         actions.select_default:replace(function()
+            actions.close(prompt_bufnr)
+            local selection = action_state.get_selected_entry()
+            if not selection then return end
+            local choice = selection[1]
+
+            local function run_lumen(target)
+               launch_lumen_diff(target, function()
+                  compare_branches_lumen(on_close)
+               end)
+            end
+
+            -- Run after Telescope closes to prevent focus race condition and start in insert mode
+            vim.schedule(function()
+               if choice == "Working Tree (Local Changes)" then
+                  run_lumen(nil)
+               elseif choice == "Enter Custom Ref / Branch / PR URL..." then
+                  vim.ui.input({ prompt = "Enter custom branch/ref (e.g. main..feature, 123, or PR URL): " }, function(input_ref)
+                     if not input_ref or input_ref == "" then
+                        vim.schedule(function()
+                           compare_branches_lumen(on_close)
+                        end)
+                        return
+                     end
+                     run_lumen(input_ref)
+                  end)
+               else
+                  -- To review current branch against target base branch (PR review):
+                  -- Compare base..HEAD (or base...HEAD for merge-base review)
+                  local current_branch = vim.fn.system("git rev-parse --abbrev-ref HEAD 2>/dev/null"):gsub("%s+", "")
+                  local diff_ref = choice .. "..." .. (current_branch ~= "" and current_branch or "HEAD")
+                  run_lumen(diff_ref)
+               end
+            end)
+         end)
+
+         local function go_back()
+            actions.close(prompt_bufnr)
+            if on_close then
+               vim.schedule(on_close)
+            end
+         end
+         map_cb("i", "<Esc>", go_back)
+         map_cb("n", "<Esc>", go_back)
+
+         local function force_quit()
+            actions.close(prompt_bufnr)
+         end
+         map_cb("i", "<S-Esc>", force_quit)
+         map_cb("n", "<S-Esc>", force_quit)
+         map_cb("n", "Q", force_quit)
+
+         return true
+      end,
+   }):find()
+end
+
 -- Open CodeDiff in inline mode
 local function open_codediff_inline()
    local ok, config = pcall(require, "codediff.config")
@@ -1036,17 +1172,19 @@ open_git_menu = function()
 
    local items = {
       { "1. View Current Diff (Hunk)", "hunk_diff" },
-      { "2. Compare Branches / Review PR", "compare_branches" },
-      { "3. View Git Commits (Telescope)", "tele_commits" },
-      { "4. Git History for Current File (Telescope)", "tele_bcommits" },
-      { "5. Git Status & Stage (Telescope)", "tele_status" },
-      { "6. CodeDiff (Side-by-Side)", "codediff_side" },
-      { "7. CodeDiff (Inline)", "codediff_inline" },
-      { "8. File History (CodeDiff)", "codediff_history" },
-      { "9. Git Branches (Telescope)", "tele_branches" },
-      { "10. Git Stashes (Telescope)", "tele_stash" },
-      { "11. Open LazyGit", "lazygit" },
-      { "12. Open Neogit", "neogit" },
+      { "2. Compare Branches / Review PR (Hunk)", "compare_branches" },
+      { "3. View Lumen Diff - Unstaged (Lumen)", "lumen_diff" },
+      { "4. Compare Branches / Review PR (Lumen)", "lumen_pr" },
+      { "5. View Git Commits (Telescope)", "tele_commits" },
+      { "6. Git History for Current File (Telescope)", "tele_bcommits" },
+      { "7. Git Status & Stage (Telescope)", "tele_status" },
+      { "8. CodeDiff (Side-by-Side)", "codediff_side" },
+      { "9. CodeDiff (Inline)", "codediff_inline" },
+      { "10. File History (CodeDiff)", "codediff_history" },
+      { "11. Git Branches (Telescope)", "tele_branches" },
+      { "12. Git Stashes (Telescope)", "tele_stash" },
+      { "13. Open LazyGit", "lazygit" },
+      { "14. Open Neogit", "neogit" },
    }
 
    pickers.new({}, {
@@ -1074,6 +1212,10 @@ open_git_menu = function()
                   smart_diff_launcher(open_git_menu)
                elseif action == "compare_branches" then
                   compare_branches(open_git_menu)
+               elseif action == "lumen_diff" then
+                  launch_lumen_diff(nil, open_git_menu)
+               elseif action == "lumen_pr" then
+                  compare_branches_lumen(open_git_menu)
                elseif action == "tele_commits" then
                   show_git_commits()
                elseif action == "tele_bcommits" then
@@ -1162,7 +1304,9 @@ end
 
 map("n", "<leader>gj", smart_diff_launcher, { desc = "Git: Open Hunk Diff Viewer (Tab)" })
 map("n", "<leader>gh", smart_diff_launcher, { desc = "Git: Open Hunk Diff Viewer (Tab)" })
-map("n", "<leader>gb", compare_branches, { desc = "Git: Compare Branches / Review PR" })
+map("n", "<leader>gk", function() launch_lumen_diff(nil) end, { desc = "Git: Open Lumen Diff (Unstaged)" })
+map("n", "<leader>gb", compare_branches, { desc = "Git: Compare Branches / Review PR (Hunk)" })
+map("n", "<leader>gp", compare_branches_lumen, { desc = "Git: Compare Branches / Review PR (Lumen)" })
 
 map("n", "<leader>gg", open_git_menu, { desc = "Git: Operations & Diffs Menu" })
 map("n", "<leader>gn", "<cmd>Neogit<CR>", { desc = "Git: Toggle Neogit Status" })

@@ -4,6 +4,8 @@
 set -euo pipefail
 
 file="${1:?usage: markdown-reader.sh <markdown-file>}"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+RENDER_PY="$SCRIPT_DIR/render-markdown.py"
 
 rendered="$(mktemp -t nvim-read-rendered)"
 keyfile="$(mktemp -t nvim-read-lesskey)"
@@ -54,7 +56,11 @@ render_doc() {
   local tmp_render="${rendered}.tmp"
   if {
     printf '\n\n\n'
-    glow -s tokyo-night -w "$content_width" "$file" < /dev/null \
+    if [ -x "$RENDER_PY" ]; then
+      python3 "$RENDER_PY" "$file" "$content_width" < /dev/null
+    else
+      glow -s tokyo-night -w "$content_width" "$file" < /dev/null
+    fi \
       | perl -pe 's/\x1b\[38;2;169;177;214m/\x1b[38;2;255;255;255m/g' \
       | MARGIN="$margin" perl -ne '
           BEGIN { $m = $ENV{MARGIN}; $first = 1; $prev_blank = 0; }
